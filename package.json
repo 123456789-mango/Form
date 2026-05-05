@@ -4,11 +4,9 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
     "dev": "vite",
-    "build": "vite build",
-    "preview": "vite preview",
-    "start": "node api/index.js"
+    "server": "nodemon api/index.js",
+    "start": "concurrently \"npm run server\" \"npm run dev\""
   },
   "keywords": [],
   "author": "",
@@ -31,6 +29,8 @@
   },
   "devDependencies": {
     "@vitejs/plugin-react": "^6.0.1",
+    "concurrently": "^9.2.1",
+    "nodemon": "^3.1.14",
     "vite": "^8.0.10"
   }
 }

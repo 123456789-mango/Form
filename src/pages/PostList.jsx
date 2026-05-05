@@ -2,6 +2,8 @@ import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { deletePost, getAllPosts } from '../api/blog';
 
+// top of blog.js temporarily
+console.log('API KEY:', import.meta.env.VITE_API_KEY);
 // Helper to convert YouTube/Vimeo to embed URL
 const getEmbedUrl = (url) => {
     const yt = url.match(/(?:youtube\.com\/watch\?v=|youtu\.be\/)([^&\n?#]+)/);

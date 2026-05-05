@@ -45,7 +45,9 @@ export const uploadGallery = async (files) => {
     const formData = new FormData();
     files.forEach(file => formData.append('images', file));
     const res = await fetch(`${BASE_URL}/api/upload/gallery`, {
-        method: 'POST', headers: { 'x-api-key': API_KEY }, body: formData,
+        method: 'POST',
+        headers: { 'x-api-key': API_KEY }, // ← was missing!
+        body: formData,
     });
     return res.json();
 };

@@ -6,14 +6,23 @@ export default function GalleryUpload({ gallery, setGallery }) {
 
     const handleFiles = async (e) => {
         const files = Array.from(e.target.files);
+        if (!files.length) return;
         setUploading(true);
         try {
-            const { urls } = await uploadGallery(files);
-            setGallery(prev => [...prev, ...urls]);
+            const result = await uploadGallery(files);
+
+            // ← Guard: check urls exists and is array before spreading
+            if (!result.urls || !Array.isArray(result.urls)) {
+                alert(result.error || 'Gallery upload failed');
+                return;
+            }
+
+            setGallery(prev => [...prev, ...result.urls]);
         } catch {
             alert('Gallery upload failed');
         } finally {
             setUploading(false);
+            e.target.value = ''; // reset file input
         }
     };
 
@@ -30,9 +39,8 @@ export default function GalleryUpload({ gallery, setGallery }) {
                 onChange={handleFiles}
                 disabled={uploading}
             />
-            {uploading && <p style={{ color: '#4f46e5' }}>Uploading images...</p>}
+            {uploading && <p style={{ color: '#4f46e5' }}>⏳ Uploading images...</p>}
 
-            {/* Gallery Preview Grid */}
             <div style={styles.grid}>
                 {gallery.map((url, i) => (
                     <div key={i} style={styles.imgWrap}>
