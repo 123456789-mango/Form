@@ -1,8 +1,7 @@
 const router = require('express').Router();
 const Post = require('../models/Post');
-const auth = require('../middleware/auth'); // ← import
+const auth = require('../middleware/auth');
 
-// ✅ PUBLIC — anyone can read
 router.get('/', async (req, res) => {
   try {
     const posts = await Post.find().sort({ createdAt: -1 });
@@ -22,7 +21,6 @@ router.get('/:id', async (req, res) => {
   }
 });
 
-// 🔒 PROTECTED — only admin with API key
 router.post('/', auth, async (req, res) => {
   try {
     const slug = req.body.title

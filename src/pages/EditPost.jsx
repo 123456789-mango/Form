@@ -3,14 +3,18 @@ import ReactQuill from 'react-quill';
 import 'react-quill/dist/quill.snow.css';
 import { useNavigate, useParams } from 'react-router-dom';
 import { getPost, updatePost, uploadImage } from '../api/blog';
+import GalleryUpload from '../components/GalleryUpload';
+import VideoUpload from '../components/VideoUpload';
 
 export default function EditPost() {
     const { id } = useParams();
     const navigate = useNavigate();
     const [form, setForm] = useState({ title: '', tags: '', author: '' });
-    const [content, setContent] = useState('');   // ← separate from form
+    const [content, setContent] = useState('');
     const [image, setImage] = useState(null);
     const [preview, setPreview] = useState(null);
+    const [gallery, setGallery] = useState([]);  // ← new
+    const [videos, setVideos] = useState([]);  // ← new
     const [loading, setLoading] = useState(false);
     const [fetching, setFetching] = useState(true);
 
@@ -21,8 +25,10 @@ export default function EditPost() {
                 tags: post.tags?.join(', ') || '',
                 author: post.author,
             });
-            setContent(post.content);   // ← set separately
+            setContent(post.content);
             setPreview(post.coverImage);
+            setGallery(post.gallery || []);   // ← load existing gallery
+            setVideos(post.videos || []);   // ← load existing videos
             setFetching(false);
         });
     }, [id]);
@@ -43,9 +49,11 @@ export default function EditPost() {
             }
             await updatePost(id, {
                 ...form,
-                content,                // ← use separate content state
+                content,
                 tags: form.tags.split(',').map(t => t.trim()).filter(Boolean),
                 coverImage,
+                gallery,  // ← save gallery
+                videos,   // ← save videos
             });
             navigate('/');
         } catch (err) {
@@ -87,12 +95,19 @@ export default function EditPost() {
             {preview && <img src={preview} alt="preview" style={styles.preview} />}
 
             <label style={styles.label}>Content</label>
-            {/* ← No key prop, content is separate state now */}
             <ReactQuill
                 value={content}
                 onChange={setContent}
                 style={{ height: '300px', marginBottom: '50px' }}
             />
+
+            {/* Gallery */}
+            <label style={styles.label}>Gallery Images</label>
+            <GalleryUpload gallery={gallery} setGallery={setGallery} />
+
+            {/* Videos */}
+            <label style={styles.label}>Videos</label>
+            <VideoUpload videos={videos} setVideos={setVideos} />
 
             <button onClick={handleSubmit} disabled={loading} style={styles.btn}>
                 {loading ? 'Saving...' : '💾 Save Changes'}
@@ -103,8 +118,8 @@ export default function EditPost() {
 
 const styles = {
     container: { padding: '24px', maxWidth: '800px', margin: '0 auto' },
-    label: { display: 'block', fontWeight: 'bold', marginBottom: '6px', marginTop: '16px' },
+    label: { display: 'block', fontWeight: 'bold', marginBottom: '6px', marginTop: '24px' },
     input: { width: '100%', padding: '10px', fontSize: '15px', borderRadius: '6px', border: '1px solid #ddd', boxSizing: 'border-box' },
     preview: { width: '200px', height: '120px', objectFit: 'cover', borderRadius: '8px', marginTop: '10px' },
-    btn: { marginTop: '16px', background: '#4f46e5', color: 'white', border: 'none', padding: '12px 24px', borderRadius: '8px', fontSize: '16px', cursor: 'pointer', width: '100%' },
+    btn: { marginTop: '24px', background: '#4f46e5', color: 'white', border: 'none', padding: '12px 24px', borderRadius: '8px', fontSize: '16px', cursor: 'pointer', width: '100%' },
 };

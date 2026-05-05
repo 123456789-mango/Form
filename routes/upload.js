@@ -1,3 +1,4 @@
+// routes/upload.js
 const router = require('express').Router();
 const cloudinary = require('cloudinary').v2;
 const { CloudinaryStorage } = require('multer-storage-cloudinary');
@@ -10,26 +11,54 @@ cloudinary.config({
   api_secret: process.env.CLOUD_API_SECRET,
 });
 
-const storage = new CloudinaryStorage({
+// Image storage
+const imageStorage = new CloudinaryStorage({
   cloudinary,
   params: {
     folder: 'blog-images',
     allowed_formats: ['jpg', 'jpeg', 'png', 'webp'],
-    transformation: [{ width: 1200, crop: 'limit' }], // auto resize
+    transformation: [{ width: 1200, crop: 'limit' }],
   },
 });
 
-const upload = multer({
-  storage,
-  limits: { fileSize: 5 * 1024 * 1024 }, // 5MB max
+// Video storage
+const videoStorage = new CloudinaryStorage({
+  cloudinary,
+  params: {
+    folder: 'blog-videos',
+    resource_type: 'video',
+    allowed_formats: ['mp4', 'mov', 'avi', 'webm'],
+  },
 });
 
+const uploadImage = multer({ storage: imageStorage, limits: { fileSize: 5 * 1024 * 1024 } });
+const uploadVideo = multer({ storage: videoStorage, limits: { fileSize: 100 * 1024 * 1024 } }); // 100MB
 
-router.post('/', auth, upload.single('image'), (req, res) => {
+// POST /api/upload — single image (existing)
+router.post('/', auth, uploadImage.single('image'), (req, res) => {
   try {
     res.json({ url: req.file.path, public_id: req.file.filename });
   } catch (err) {
     res.status(500).json({ error: 'Image upload failed' });
+  }
+});
+
+// POST /api/upload/gallery — multiple images
+router.post('/gallery', auth, uploadImage.array('images', 10), (req, res) => {
+  try {
+    const urls = req.files.map(f => f.path);
+    res.json({ urls });
+  } catch (err) {
+    res.status(500).json({ error: 'Gallery upload failed' });
+  }
+});
+
+// POST /api/upload/video — single video file
+router.post('/video', auth, uploadVideo.single('video'), (req, res) => {
+  try {
+    res.json({ url: req.file.path, public_id: req.file.filename });
+  } catch (err) {
+    res.status(500).json({ error: 'Video upload failed' });
   }
 });
 
