@@ -9,7 +9,6 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 
-// MongoDB Connection
 let isConnected = false;
 const connectDB = async () => {
   if (isConnected) return;
@@ -23,18 +22,14 @@ app.use(async (req, res, next) => {
   next();
 });
 
-// Routes
-app.use('/api/posts',  require('../routes/posts'));
-app.use('/api/upload', require('../routes/upload'));
+app.use('/api/posts', require('../routes/posts'));
+app.use('/api/upload', require('../routes/upload')); // ← handles /api/upload, /api/upload/gallery, /api/upload/video
 
 app.get('/', (req, res) => res.json({ message: 'Blog API running ✅' }));
 
-// ✅ Add this — local development server
 if (process.env.NODE_ENV !== 'production') {
   const PORT = process.env.PORT || 3000;
-  app.listen(PORT, () => {
-    console.log(`🚀 Server running on http://localhost:${PORT}`);
-  });
+  app.listen(PORT, () => console.log(`🚀 Server running on http://localhost:${PORT}`));
 }
 
 module.exports = app;

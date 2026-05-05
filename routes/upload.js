@@ -1,4 +1,3 @@
-// routes/upload.js
 const router = require('express').Router();
 const cloudinary = require('cloudinary').v2;
 const { CloudinaryStorage } = require('multer-storage-cloudinary');
@@ -24,18 +23,18 @@ const imageStorage = new CloudinaryStorage({
 // Video storage
 const videoStorage = new CloudinaryStorage({
   cloudinary,
-  params: {
+  params: (req, file) => ({
     folder: 'blog-videos',
     resource_type: 'video',
     allowed_formats: ['mp4', 'mov', 'avi', 'webm'],
-  },
+  }),
 });
 
-const uploadImage = multer({ storage: imageStorage, limits: { fileSize: 5 * 1024 * 1024 } });
-const uploadVideo = multer({ storage: videoStorage, limits: { fileSize: 100 * 1024 * 1024 } }); // 100MB
+const imgUpload = multer({ storage: imageStorage, limits: { fileSize: 5 * 1024 * 1024 } });
+const videoUpload = multer({ storage: videoStorage, limits: { fileSize: 100 * 1024 * 1024 } });
 
-// POST /api/upload — single image (existing)
-router.post('/', auth, uploadImage.single('image'), (req, res) => {
+// POST /api/upload          ← single cover image
+router.post('/', auth, imgUpload.single('image'), (req, res) => {
   try {
     res.json({ url: req.file.path, public_id: req.file.filename });
   } catch (err) {
@@ -43,8 +42,8 @@ router.post('/', auth, uploadImage.single('image'), (req, res) => {
   }
 });
 
-// POST /api/upload/gallery — multiple images
-router.post('/gallery', auth, uploadImage.array('images', 10), (req, res) => {
+// POST /api/upload/gallery  ← multiple images
+router.post('/gallery', auth, imgUpload.array('images', 10), (req, res) => {
   try {
     const urls = req.files.map(f => f.path);
     res.json({ urls });
@@ -53,8 +52,8 @@ router.post('/gallery', auth, uploadImage.array('images', 10), (req, res) => {
   }
 });
 
-// POST /api/upload/video — single video file
-router.post('/video', auth, uploadVideo.single('video'), (req, res) => {
+// POST /api/upload/video    ← single video file
+router.post('/video', auth, videoUpload.single('video'), (req, res) => {
   try {
     res.json({ url: req.file.path, public_id: req.file.filename });
   } catch (err) {
