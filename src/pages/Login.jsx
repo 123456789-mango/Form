@@ -1,26 +1,49 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 
+const BASE_URL = import.meta.env.VITE_API_URL || '';
+
 export default function Login() {
-    const [key, setKey] = useState('');
+    const [username, setUsername] = useState('sysadmin');
+    const [password, setPassword] = useState('');
+    const [loading, setLoading] = useState(false);
     const navigate = useNavigate();
 
-    const handleSubmit = (e) => {
+    const handleSubmit = async (e) => {
         e.preventDefault();
-        if (!key) return alert('Enter API key');
-        localStorage.setItem('api_key', key);
-        navigate('/');
+        if (!username || !password) return alert('Enter username and password');
+        setLoading(true);
+        try {
+            const res = await fetch(`${BASE_URL}/api/auth/login`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ username, password }),
+            });
+
+            const data = await res.json();
+            if (!res.ok) throw new Error(data.error || 'Login failed');
+            localStorage.setItem('api_key', data.apiKey);
+            navigate('/');
+        } catch (err) {
+            alert(err.message || 'Login failed');
+        } finally {
+            setLoading(false);
+        }
     };
 
     return (
         <div style={styles.container}>
             <h2>Admin Login</h2>
             <form onSubmit={handleSubmit} style={styles.form}>
-                <label style={styles.label}>API Key</label>
-                <input style={styles.input} value={key} onChange={e => setKey(e.target.value)} placeholder="Paste your admin API key" />
-                <button style={styles.btn} type="submit">Log in</button>
+                <label style={styles.label}>Username</label>
+                <input style={styles.input} value={username} onChange={e => setUsername(e.target.value)} />
+
+                <label style={styles.label}>Password</label>
+                <input style={styles.input} type="password" value={password} onChange={e => setPassword(e.target.value)} />
+
+                <button style={styles.btn} type="submit" disabled={loading}>{loading ? 'Logging in...' : 'Log in'}</button>
             </form>
-            <p style={{ marginTop: 16 }}>This key is stored locally in your browser only.</p>
+            <p style={{ marginTop: 16 }}>Credentials default to <strong>sysadmin</strong> / <strong>Neema@123</strong> unless overridden by environment variables.</p>
         </div>
     );
 }
