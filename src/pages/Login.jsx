@@ -4,7 +4,7 @@ import { useNavigate } from 'react-router-dom';
 const BASE_URL = import.meta.env.VITE_API_URL || '';
 
 export default function Login() {
-    const [username, setUsername] = useState('sysadmin');
+    const [username, setUsername] = useState('');
     const [password, setPassword] = useState('');
     const [loading, setLoading] = useState(false);
     const navigate = useNavigate();

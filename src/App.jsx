@@ -13,15 +13,26 @@ function Private({ children }) {
 }
 
 export default function App() {
+    // Inner component so we can use `useLocation` inside BrowserRouter
+    function Inner() {
+        const location = useLocation();
+        const showNavbar = location.pathname !== '/login';
+        return (
+            <>
+                {showNavbar && <Navbar />}
+                <Routes>
+                    <Route path="/login" element={<Login />} />
+                    <Route path="/" element={<Private><PostList /></Private>} />
+                    <Route path="/create" element={<Private><CreatePost /></Private>} />
+                    <Route path="/edit/:id" element={<Private><EditPost /></Private>} />
+                </Routes>
+            </>
+        );
+    }
+
     return (
         <BrowserRouter>
-            <Navbar />
-            <Routes>
-                <Route path="/login" element={<Login />} />
-                <Route path="/" element={<Private><PostList /></Private>} />
-                <Route path="/create" element={<Private><CreatePost /></Private>} />
-                <Route path="/edit/:id" element={<Private><EditPost /></Private>} />
-            </Routes>
+            <Inner />
         </BrowserRouter>
     );
 }
