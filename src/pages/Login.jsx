@@ -44,7 +44,6 @@ export default function Login() {
 
                 <button style={styles.btn} type="submit" disabled={loading}>{loading ? 'Logging in...' : 'Log in'}</button>
             </form>
-            <p style={{ marginTop: 16 }}>Credentials default to <strong>sysadmin</strong> / <strong>Neema@123</strong> unless overridden by environment variables.</p>
         </div>
     );
 }
