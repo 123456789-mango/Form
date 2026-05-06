@@ -4,6 +4,9 @@ import { defineConfig } from 'vite';
 export default defineConfig({
     plugins: [react()],
     build: {
-        outDir: 'dist'
+        outDir: 'dist',
+        emptyOutDir: true,  // Clear dist before building
+        sourcemap: false,   // Disable source maps (smaller build)
+        minify: 'esbuild'
     }
 });
