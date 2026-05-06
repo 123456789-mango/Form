@@ -49,7 +49,13 @@ export default function Login() {
 }
 
 const styles = {
-    container: { padding: '24px', maxWidth: '480px', margin: '40px auto', textAlign: 'center' },
+    container: { 
+        backgroundimage: 'url(/login-bg.jpg)', backgroundSize: 'cover', backgroundPosition: 'center',
+        padding: '24px',
+         maxWidth: '480px',
+          margin: '40px auto',
+           textAlign: 'center'
+         },
     form: { display: 'flex', flexDirection: 'column', gap: '12px', marginTop: 12 },
     label: { textAlign: 'left', fontWeight: 'bold' },
     input: { padding: '10px', borderRadius: '6px', border: '1px solid #ddd' },
