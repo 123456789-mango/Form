@@ -2,11 +2,9 @@ import { Link, useNavigate } from 'react-router-dom';
 
 export default function Navbar() {
     const navigate = useNavigate();
-    const apiKey = localStorage.getItem('api_key') || import.meta.env.VITE_API_KEY;
     const token = localStorage.getItem('token');
 
     const handleLogout = () => {
-        localStorage.removeItem('api_key');
         localStorage.removeItem('token');
         navigate('/login');
     };
@@ -17,7 +15,7 @@ export default function Navbar() {
             <div style={styles.links}>
                 <Link to="/" style={styles.link}>All Posts</Link>
                 <Link to="/create" style={styles.link}>+ New Post</Link>
-                {(apiKey || token) ? (
+                {token ? (
                     <button onClick={handleLogout} style={styles.logoutBtn}>Logout</button>
                 ) : (
                     <Link to="/login" style={styles.link}>Login</Link>
