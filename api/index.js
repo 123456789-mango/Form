@@ -17,8 +17,32 @@ const connectDB = async () => {
   console.log('✅ MongoDB connected');
 };
 
+// Seed an admin user if none exists
+const seedAdmin = async () => {
+  try {
+    const User = require('../models/User');
+    const bcrypt = require('bcryptjs');
+    const adminUser = process.env.ADMIN_USER || 'sysadmin';
+    const adminPass = process.env.ADMIN_PASS || 'Neema@123';
+
+    const exists = await User.findOne({ username: adminUser });
+    if (exists) {
+      console.log('Admin user already exists:', adminUser);
+      return;
+    }
+
+    const hash = await bcrypt.hash(adminPass, 10);
+    await User.create({ username: adminUser, password: hash, role: 'admin' });
+    console.log('✅ Seeded admin user:', adminUser);
+  } catch (err) {
+    console.error('Failed to seed admin user:', err.message || err);
+  }
+};
+
 app.use(async (req, res, next) => {
   await connectDB();
+  // ensure admin seeded on first DB connection
+  if (isConnected) await seedAdmin();
   next();
 });
 

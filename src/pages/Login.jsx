@@ -22,7 +22,8 @@ export default function Login() {
 
             const data = await res.json();
             if (!res.ok) throw new Error(data.error || 'Login failed');
-            localStorage.setItem('api_key', data.apiKey);
+            // store JWT token
+            localStorage.setItem('token', data.token);
             navigate('/');
         } catch (err) {
             alert(err.message || 'Login failed');
