@@ -48,7 +48,7 @@ export default function PostList() {
                         <div style={styles.info}>
                             <h3 style={styles.title}>{post.title}</h3>
                             <p style={styles.meta}>
-                                {post.author} · {new Date(post.createdAt).toLocaleDateString()}
+                                {post.author} · {new Date(post.createdAt).toLocaleDateString()} · {post.category || 'General'}
                             </p>
                             <div style={styles.tags}>
                                 {post.tags?.map(tag => (

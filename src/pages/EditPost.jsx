@@ -9,7 +9,7 @@ import VideoUpload from '../components/VideoUpload';
 export default function EditPost() {
     const { id } = useParams();
     const navigate = useNavigate();
-    const [form, setForm] = useState({ title: '', tags: '', author: '' });
+    const [form, setForm] = useState({ title: '', tags: '', author: '', category: 'General' });
     const [content, setContent] = useState('');
     const [image, setImage] = useState(null);
     const [preview, setPreview] = useState(null);
@@ -24,6 +24,7 @@ export default function EditPost() {
                 title: post.title,
                 tags: post.tags?.join(', ') || '',
                 author: post.author,
+                    category: post.category || 'General',
             });
             setContent(post.content);
             setPreview(post.coverImage);
@@ -82,6 +83,12 @@ export default function EditPost() {
                 value={form.author}
                 onChange={e => setForm({ ...form, author: e.target.value })}
             />
+                <label style={styles.label}>Category</label>
+                <input
+                    style={styles.input}
+                    value={form.category}
+                    onChange={e => setForm({ ...form, category: e.target.value })}
+                />
 
             <label style={styles.label}>Tags (comma separated)</label>
             <input

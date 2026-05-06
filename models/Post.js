@@ -7,6 +7,7 @@ const postSchema = new mongoose.Schema({
   tags: [{ type: String }],
   author: { type: String, default: 'Admin' },
   icon: { type: String, default: '' },
+  category: { type: String, default: 'General' },
   slug: { type: String, unique: true },
   gallery: [{ type: String }],
   videos: [{

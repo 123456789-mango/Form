@@ -8,7 +8,7 @@ import VideoUpload from '../components/VideoUpload';
 
 export default function CreatePost() {
     const navigate = useNavigate();
-    const [form, setForm] = useState({ title: '', tags: '', author: 'Admin' });
+    const [form, setForm] = useState({ title: '', tags: '', author: 'Admin', category: 'General' });
     const [content, setContent] = useState('');
     const [image, setImage] = useState(null);
     const [preview, setPreview] = useState(null);
@@ -56,6 +56,9 @@ export default function CreatePost() {
 
             <label style={styles.label}>Author</label>
             <input style={styles.input} value={form.author} onChange={e => setForm({ ...form, author: e.target.value })} />
+
+            <label style={styles.label}>Category</label>
+            <input style={styles.input} value={form.category} onChange={e => setForm({ ...form, category: e.target.value })} placeholder="General" />
 
             <label style={styles.label}>Tags (comma separated)</label>
             <input style={styles.input} value={form.tags} onChange={e => setForm({ ...form, tags: e.target.value })} placeholder="react, javascript..." />
