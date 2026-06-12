@@ -1,4 +1,5 @@
 import { Link, useNavigate } from 'react-router-dom';
+import '../styles/MetallicChic.css';
 
 export default function Navbar() {
     const navigate = useNavigate();
@@ -10,25 +11,33 @@ export default function Navbar() {
     };
 
     return (
-        <nav style={styles.nav}>
-            <h2 style={styles.logo}>📝 Blog Admin</h2>
-            <div style={styles.links}>
-                <Link to="/" style={styles.link}>All Posts</Link>
-                <Link to="/create" style={styles.link}>+ New Post</Link>
-                {token ? (
-                    <button onClick={handleLogout} style={styles.logoutBtn}>Logout</button>
-                ) : (
-                    <Link to="/login" style={styles.link}>Login</Link>
-                )}
-            </div>
-        </nav>
+        <header className="mc-navbar-container">
+            <nav className="mc-navbar">
+                {/* Brand Logo Section */}
+                <Link to="/" className="mc-navbar-brand">
+                    <span className="mc-navbar-icon">📝</span>
+                    <h2 className="mc-navbar-logo-text">Blog Admin</h2>
+                </Link>
+
+                {/* Navigation Links */}
+                <div className="mc-navbar-links">
+                    <Link to="/" className="mc-navbar-link">All Posts</Link>
+                    <Link to="/create" className="mc-navbar-link mc-navbar-btn-accent">
+                        + New Post
+                    </Link>
+
+                    {/* Authentication Section */}
+                    <div className="mc-navbar-auth">
+                        {token ? (
+                            <button onClick={handleLogout} className="mc-navbar-btn-logout">
+                                Logout
+                            </button>
+                        ) : (
+                            <Link to="/login" className="mc-navbar-link">Login</Link>
+                        )}
+                    </div>
+                </div>
+            </nav>
+        </header>
     );
 }
-
-const styles = {
-    nav: { display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '12px 24px', background: '#4f46e5', color: 'white' },
-    logo: { margin: 0, color: 'white' },
-    links: { display: 'flex', gap: '16px', alignItems: 'center' },
-    link: { color: 'white', textDecoration: 'none', fontWeight: 'bold' },
-    logoutBtn: { background: 'transparent', color: 'white', border: '1px solid rgba(255,255,255,0.2)', padding: '6px 10px', borderRadius: '6px', cursor: 'pointer' },
-};

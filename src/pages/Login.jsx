@@ -1,6 +1,8 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import bg from '../assets/images/login.jpg';
+import '../styles/MetallicChic.css';
+
 const BASE_URL = import.meta.env.VITE_API_URL || '';
 
 export default function Login() {
@@ -22,7 +24,6 @@ export default function Login() {
 
             const data = await res.json();
             if (!res.ok) throw new Error(data.error || 'Login failed');
-            // store JWT token
             localStorage.setItem('token', data.token);
             navigate('/');
         } catch (err) {
@@ -33,73 +34,35 @@ export default function Login() {
     };
 
     return (
-    <div style={styles.page}>
-        <div style={styles.container}>
-            <h2>Admin Login</h2>
-            <form onSubmit={handleSubmit} style={styles.form}>
-                <label style={styles.label}>Username</label>
-                <input
-                    style={styles.input}
-                    value={username}
-                    onChange={e => setUsername(e.target.value)}
-                />
+        <div className="mc-login-page" style={{ backgroundImage: `url(${bg})` }}>
+            <div className="mc-login-card">
+                <h2 className="mc-title">Admin Access</h2>
+                <form onSubmit={handleSubmit} className="mc-login-form">
 
-                <label style={styles.label}>Password</label>
-                <input
-                    style={styles.input}
-                    type="password"
-                    value={password}
-                    onChange={e => setPassword(e.target.value)}
-                />
+                    <div>
+                        <label className="mc-label" style={{ marginTop: '0' }}>Username</label>
+                        <input
+                            className="mc-input"
+                            value={username}
+                            onChange={e => setUsername(e.target.value)}
+                        />
+                    </div>
 
-                <button style={styles.btn} type="submit" disabled={loading}>
-                    {loading ? 'Logging in...' : 'Log in'}
-                </button>
-            </form>
+                    <div>
+                        <label className="mc-label" style={{ marginTop: '0' }}>Password</label>
+                        <input
+                            className="mc-input"
+                            type="password"
+                            value={password}
+                            onChange={e => setPassword(e.target.value)}
+                        />
+                    </div>
+
+                    <button className="mc-btn-primary" type="submit" disabled={loading} style={{ marginTop: '16px' }}>
+                        {loading ? 'Authenticating...' : 'Log in'}
+                    </button>
+                </form>
+            </div>
         </div>
-    </div>
-);
+    );
 }
-const styles = {
-    page: {
-        height: '100vh',
-        width: '100%',
-        backgroundImage: `url(${bg})`,
-        backgroundSize: 'cover',
-        backgroundPosition: 'center',
-        display: 'flex',
-        justifyContent: 'center',
-        alignItems: 'center',
-    },
-    container: {
-        background: 'rgba(255,255,255,0.9)',
-        padding: '24px',
-        borderRadius: '10px',
-        maxWidth: '400px',
-        width: '100%',
-        textAlign: 'center'
-    },
-    form: {
-        display: 'flex',
-        flexDirection: 'column',
-        gap: '12px',
-        marginTop: 12
-    },
-    label: {
-        textAlign: 'left',
-        fontWeight: 'bold'
-    },
-    input: {
-        padding: '10px',
-        borderRadius: '6px',
-        border: '1px solid #ddd'
-    },
-    btn: {
-        padding: '10px',
-        background: '#4f46e5',
-        color: 'white',
-        border: 'none',
-        borderRadius: '6px',
-        cursor: 'pointer'
-    },
-};

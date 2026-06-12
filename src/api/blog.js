@@ -35,6 +35,7 @@ export const updatePost = async (id, postData) => {
     return res.json();
 };
 
+
 export const deletePost = async (id) => {
     const res = await fetch(`${BASE_URL}/api/posts/${id}`, {
         method: 'DELETE', headers: authHeaders(false),

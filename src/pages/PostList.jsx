@@ -1,10 +1,10 @@
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { deletePost, getAllPosts } from '../api/blog';
+import '../styles/MetallicChic.css';
 
-// top of blog.js temporarily
 console.log('API KEY:', import.meta.env.VITE_API_KEY);
-// Helper to convert YouTube/Vimeo to embed URL
+
 const getEmbedUrl = (url) => {
     const yt = url.match(/(?:youtube\.com\/watch\?v=|youtu\.be\/)([^&\n?#]+)/);
     if (yt) return `https://www.youtube.com/embed/${yt[1]}`;
@@ -30,104 +30,76 @@ export default function PostList() {
         setPosts(posts.filter(p => p._id !== id));
     };
 
-    if (loading) return <p style={styles.center}>Loading posts...</p>;
+    if (loading) return <p style={{ textAlign: 'center', marginTop: '40px' }}>Loading posts...</p>;
 
     return (
-        <div style={styles.container}>
-            <h2>All Posts ({posts.length})</h2>
+        <div className="mc-page-container">
+            <h2 className="mc-title" style={{ marginBottom: '24px' }}>All Posts ({posts.length})</h2>
             {posts.length === 0 && <p>No posts yet.</p>}
 
             {posts.map(post => (
-                <div key={post._id} style={styles.card}>
-
-                    {/* Header row */}
-                    <div style={styles.header}>
+                <div key={post._id} className="mc-card">
+                    <div className="mc-header-row">
                         {post.coverImage && (
-                            <img src={post.coverImage} alt={post.title} style={styles.cover} />
+                            <div className="mc-img-wrap">
+                                <img src={post.coverImage} alt={post.title} className="mc-cover" />
+                            </div>
                         )}
-                        <div style={styles.info}>
-                            <h3 style={styles.title}>{post.title}</h3>
-                            <p style={styles.meta}>
+                        <div className="mc-info-col">
+                            <h3 className="mc-title">{post.title}</h3>
+                            <p className="mc-meta">
                                 {post.author} · {new Date(post.createdAt).toLocaleDateString()} · {post.category || 'General'}
                             </p>
-                            <div style={styles.tags}>
+                            <div className="mc-tags">
                                 {post.tags?.map(tag => (
-                                    <span key={tag} style={styles.tag}>#{tag}</span>
+                                    <span key={tag} className="mc-tag">#{tag}</span>
                                 ))}
                             </div>
                         </div>
-                        {/* Actions */}
-                        <div style={styles.actions}>
-                            <button onClick={() => navigate(`/edit/${post._id}`)} style={styles.editBtn}>✏️ Edit</button>
-                            <button onClick={() => handleDelete(post._id)} style={styles.deleteBtn}>🗑️ Delete</button>
+                        <div className="mc-action-col">
+                            <button onClick={() => navigate(`/edit/${post._id}`)} className="mc-btn">✏️ Edit</button>
+                            <button onClick={() => handleDelete(post._id)} className="mc-btn-danger">🗑️ Delete</button>
                         </div>
                     </div>
 
-                    {/* Content preview */}
                     <div
-                        style={styles.contentPreview}
+                        style={{ color: '#4b5563', fontSize: '14px', marginTop: '16px', lineHeight: '1.6' }}
                         dangerouslySetInnerHTML={{ __html: post.content?.substring(0, 200) + '...' }}
                     />
 
-                    {/* Gallery */}
                     {post.gallery?.length > 0 && (
-                        <div style={styles.section}>
-                            <p style={styles.sectionLabel}>📷 Gallery ({post.gallery.length} images)</p>
-                            <div style={styles.galleryGrid}>
+                        <div style={{ marginTop: '20px', borderTop: '1px solid #d1d5db', paddingTop: '16px' }}>
+                            <p className="mc-sub-label">📷 Gallery ({post.gallery.length} images)</p>
+                            <div className="mc-grid">
                                 {post.gallery.map((url, i) => (
-                                    <img key={i} src={url} alt={`gallery-${i}`} style={styles.galleryImg} />
+                                    <img key={i} src={url} alt={`gallery-${i}`} className="mc-gallery-img" style={{ borderRadius: '6px' }} />
                                 ))}
                             </div>
                         </div>
                     )}
 
-                    {/* Videos */}
                     {post.videos?.length > 0 && (
-                        <div style={styles.section}>
-                            <p style={styles.sectionLabel}>🎥 Videos ({post.videos.length})</p>
-                            <div style={styles.videoGrid}>
+                        <div style={{ marginTop: '20px', borderTop: '1px solid #d1d5db', paddingTop: '16px' }}>
+                            <p className="mc-sub-label">🎥 Videos ({post.videos.length})</p>
+                            <div className="mc-grid">
                                 {post.videos.map((video, i) => (
                                     video.type === 'url' ? (
                                         <iframe
                                             key={i}
                                             src={getEmbedUrl(video.url)}
-                                            style={styles.videoThumb}
+                                            className="mc-video-thumb"
                                             allowFullScreen
                                             title={`video-${i}`}
                                         />
                                     ) : (
-                                        <video key={i} src={video.url} controls style={styles.videoThumb} />
+                                        <video key={i} src={video.url} controls className="mc-video-thumb" />
                                     )
                                 ))}
                             </div>
                         </div>
                     )}
-
                 </div>
             ))}
         </div>
     );
 }
-
-const styles = {
-    container: { padding: '24px', maxWidth: '900px', margin: '0 auto' },
-    center: { textAlign: 'center', marginTop: '40px' },
-    card: { background: 'white', borderRadius: '10px', padding: '20px', marginBottom: '24px', boxShadow: '0 1px 6px rgba(0,0,0,0.1)' },
-    header: { display: 'flex', gap: '16px', alignItems: 'flex-start' },
-    cover: { width: '120px', height: '80px', objectFit: 'cover', borderRadius: '6px', flexShrink: 0 },
-    info: { flex: 1 },
-    title: { margin: '0 0 4px', fontSize: '18px' },
-    meta: { margin: '0 0 6px', color: 'gray', fontSize: '13px' },
-    tags: { display: 'flex', gap: '6px', flexWrap: 'wrap' },
-    tag: { background: '#ede9fe', color: '#4f46e5', padding: '2px 8px', borderRadius: '12px', fontSize: '12px' },
-    actions: { display: 'flex', flexDirection: 'column', gap: '8px' },
-    editBtn: { background: '#4f46e5', color: 'white', border: 'none', padding: '8px 12px', borderRadius: '6px', cursor: 'pointer' },
-    deleteBtn: { background: '#ef4444', color: 'white', border: 'none', padding: '8px 12px', borderRadius: '6px', cursor: 'pointer' },
-    contentPreview: { color: '#555', fontSize: '14px', marginTop: '12px', lineHeight: '1.5' },
-    section: { marginTop: '16px', borderTop: '1px solid #f0f0f0', paddingTop: '12px' },
-    sectionLabel: { fontWeight: 'bold', color: '#555', marginBottom: '8px' },
-    galleryGrid: { display: 'flex', gap: '8px', flexWrap: 'wrap' },
-    galleryImg: { width: '100px', height: '70px', objectFit: 'cover', borderRadius: '6px' },
-    videoGrid: { display: 'flex', gap: '12px', flexWrap: 'wrap' },
-    videoThumb: { width: '280px', height: '160px', borderRadius: '6px', border: 'none' },
-};

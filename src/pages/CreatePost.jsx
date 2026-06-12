@@ -5,6 +5,7 @@ import { useNavigate } from 'react-router-dom';
 import { createPost, uploadImage } from '../api/blog';
 import GalleryUpload from '../components/GalleryUpload';
 import VideoUpload from '../components/VideoUpload';
+import '../styles/MetallicChic.css';
 
 export default function CreatePost() {
     const navigate = useNavigate();
@@ -12,8 +13,8 @@ export default function CreatePost() {
     const [content, setContent] = useState('');
     const [image, setImage] = useState(null);
     const [preview, setPreview] = useState(null);
-    const [gallery, setGallery] = useState([]);   // ← new
-    const [videos, setVideos] = useState([]);   // ← new
+    const [gallery, setGallery] = useState([]);
+    const [videos, setVideos] = useState([]);
     const [loading, setLoading] = useState(false);
 
     const handleImageChange = (e) => {
@@ -36,8 +37,8 @@ export default function CreatePost() {
                 content,
                 tags: form.tags.split(',').map(t => t.trim()).filter(Boolean),
                 coverImage,
-                gallery,   // ← new
-                videos,    // ← new
+                gallery,
+                videos,
             });
             navigate('/');
         } catch {
@@ -48,47 +49,50 @@ export default function CreatePost() {
     };
 
     return (
-        <div style={styles.container}>
-            <h2>Create New Post</h2>
+        <div className="mc-form-container">
+            <h2 className="mc-title">Create New Post</h2>
 
-            <label style={styles.label}>Title</label>
-            <input style={styles.input} value={form.title} onChange={e => setForm({ ...form, title: e.target.value })} placeholder="Post title..." />
+            <label className="mc-label">Title</label>
+            <input className="mc-input" value={form.title} onChange={e => setForm({ ...form, title: e.target.value })} placeholder="Post title..." />
 
-            <label style={styles.label}>Author</label>
-            <input style={styles.input} value={form.author} onChange={e => setForm({ ...form, author: e.target.value })} />
+            <div className="mc-header-row" style={{ marginTop: '24px' }}>
+                <div style={{ flex: 1 }}>
+                    <label className="mc-label" style={{ marginTop: '0' }}>Author</label>
+                    <input className="mc-input" value={form.author} onChange={e => setForm({ ...form, author: e.target.value })} />
+                </div>
+                <div style={{ flex: 1 }}>
+                    <label className="mc-label" style={{ marginTop: '0' }}>Category</label>
+                    <input className="mc-input" value={form.category} onChange={e => setForm({ ...form, category: e.target.value })} placeholder="General" />
+                </div>
+            </div>
 
-            <label style={styles.label}>Category</label>
-            <input style={styles.input} value={form.category} onChange={e => setForm({ ...form, category: e.target.value })} placeholder="General" />
+            <label className="mc-label">Tags (comma separated)</label>
+            <input className="mc-input" value={form.tags} onChange={e => setForm({ ...form, tags: e.target.value })} placeholder="react, javascript..." />
 
-            <label style={styles.label}>Tags (comma separated)</label>
-            <input style={styles.input} value={form.tags} onChange={e => setForm({ ...form, tags: e.target.value })} placeholder="react, javascript..." />
+            <label className="mc-label">Cover Image</label>
+            <input type="file" accept="image/*" onChange={handleImageChange} className="mc-input" style={{ padding: '8px' }} />
+            {preview && (
+                <div className="mc-img-wrap" style={{ display: 'inline-block', marginTop: '12px' }}>
+                    <img src={preview} alt="preview" className="mc-cover" />
+                </div>
+            )}
 
-            <label style={styles.label}>Cover Image</label>
-            <input type="file" accept="image/*" onChange={handleImageChange} />
-            {preview && <img src={preview} alt="preview" style={styles.preview} />}
-
-            <label style={styles.label}>Content</label>
+            <label className="mc-label">Content</label>
             <ReactQuill value={content} onChange={setContent} style={{ height: '300px', marginBottom: '50px' }} />
 
-            {/* Gallery */}
-            <label style={styles.label}>Gallery Images</label>
-            <GalleryUpload gallery={gallery} setGallery={setGallery} />
+            <div className="mc-card" style={{ marginTop: '40px' }}>
+                <label className="mc-title" style={{ fontSize: '18px' }}>Gallery Images</label>
+                <GalleryUpload gallery={gallery} setGallery={setGallery} />
+            </div>
 
-            {/* Videos */}
-            <label style={styles.label}>Videos</label>
-            <VideoUpload videos={videos} setVideos={setVideos} />
+            <div className="mc-card">
+                <label className="mc-title" style={{ fontSize: '18px' }}>Videos</label>
+                <VideoUpload videos={videos} setVideos={setVideos} />
+            </div>
 
-            <button onClick={handleSubmit} disabled={loading} style={styles.btn}>
+            <button onClick={handleSubmit} disabled={loading} className="mc-btn-primary">
                 {loading ? 'Publishing...' : '🚀 Publish Post'}
             </button>
         </div>
     );
 }
-
-const styles = {
-    container: { padding: '24px', maxWidth: '800px', margin: '0 auto' },
-    label: { display: 'block', fontWeight: 'bold', marginBottom: '6px', marginTop: '24px' },
-    input: { width: '100%', padding: '10px', fontSize: '15px', borderRadius: '6px', border: '1px solid #ddd', boxSizing: 'border-box' },
-    preview: { width: '200px', height: '120px', objectFit: 'cover', borderRadius: '8px', marginTop: '10px' },
-    btn: { marginTop: '24px', background: '#4f46e5', color: 'white', border: 'none', padding: '12px 24px', borderRadius: '8px', fontSize: '16px', cursor: 'pointer', width: '100%' },
-};

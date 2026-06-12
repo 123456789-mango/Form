@@ -1,0 +1,455 @@
+/* MetallicChic.css */
+:root {
+    /* Platinum / Silver Palette */
+    --metal-light: #e6e9ef;
+    --metal-white: #ffffff;
+    --metal-shadow: #b8c0cc;
+    
+    /* Gunmetal Palette */
+    --gunmetal-light: #4b5563;
+    --gunmetal: #1f2937;
+    --gunmetal-dark: #111827;
+
+    /* Brushed Brass / Gold Accent */
+    --brass-light: #f5d76e;
+    --brass-main: #d4af37;
+    --brass-dark: #aa8014;
+
+    /* Danger / Crimson Metal */
+    --crimson-light: #ef4444;
+    --crimson-dark: #991b1b;
+}
+
+/* --- Structural Containers --- */
+.mc-page-container {
+    padding: 24px;
+    max-width: 900px;
+    margin: 0 auto;
+    color: var(--gunmetal-dark);
+    font-family: 'Inter', -apple-system, sans-serif;
+}
+
+.mc-form-container {
+    background: linear-gradient(145deg, var(--metal-light), var(--metal-white));
+    box-shadow: 12px 12px 24px var(--metal-shadow), -12px -12px 24px var(--metal-white);
+    border-radius: 16px;
+    padding: 32px;
+    max-width: 800px;
+    margin: 40px auto;
+    border: 1px solid rgba(255, 255, 255, 0.6);
+}
+
+.mc-card {
+    background: linear-gradient(145deg, #f0f3f8, #ffffff);
+    box-shadow: 6px 6px 12px var(--metal-shadow), -6px -6px 12px var(--metal-white);
+    border-radius: 12px;
+    padding: 24px;
+    margin-bottom: 24px;
+    border: 1px solid rgba(255, 255, 255, 0.8);
+}
+
+.mc-sub-card {
+    background: inset 2px 2px 5px var(--metal-shadow), inset -2px -2px 5px var(--metal-white);
+    background-color: #ebedf2;
+    border-radius: 8px;
+    padding: 16px;
+    margin-bottom: 16px;
+    border: 1px solid #d1d5db;
+}
+
+/* --- Typography & Labels --- */
+.mc-title { margin: 0 0 8px; font-size: 22px; color: var(--gunmetal-dark); font-weight: 800; letter-spacing: -0.5px; }
+.mc-label { display: block; font-weight: 700; margin: 24px 0 8px; color: var(--gunmetal); text-transform: uppercase; font-size: 12px; letter-spacing: 1px; }
+.mc-sub-label { font-weight: 700; margin: 16px 0 8px; color: var(--gunmetal-light); font-size: 14px; }
+.mc-meta { margin: 0 0 12px; color: var(--gunmetal-light); font-size: 13px; font-weight: 500; }
+.mc-status-text { color: var(--brass-dark); font-weight: bold; margin-top: 8px; }
+
+/* --- Inputs (Debossed Metal Effect) --- */
+.mc-input {
+    width: 100%;
+    padding: 12px 16px;
+    font-size: 15px;
+    border-radius: 8px;
+    background: var(--metal-light);
+    border: 1px solid transparent;
+    box-shadow: inset 4px 4px 8px var(--metal-shadow), inset -4px -4px 8px var(--metal-white);
+    color: var(--gunmetal-dark);
+    box-sizing: border-box;
+    transition: all 0.2s ease;
+}
+.mc-input:focus { outline: none; border: 1px solid var(--brass-main); }
+.mc-input-row { display: flex; gap: 12px; align-items: center; }
+
+/* --- Buttons (Embossed Metal Effects) --- */
+.mc-btn {
+    background: linear-gradient(145deg, var(--gunmetal-light), var(--gunmetal));
+    color: var(--metal-white);
+    border: 1px solid var(--gunmetal-dark);
+    box-shadow: 3px 3px 6px var(--metal-shadow), inset 1px 1px 2px rgba(255,255,255,0.2);
+    padding: 10px 18px;
+    border-radius: 8px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    text-shadow: 0 1px 2px rgba(0,0,0,0.5);
+}
+.mc-btn:hover:not(:disabled) { background: var(--gunmetal-dark); transform: translateY(-1px); }
+.mc-btn:disabled { opacity: 0.6; cursor: not-allowed; }
+
+.mc-btn-primary {
+    background: linear-gradient(145deg, var(--brass-light), var(--brass-main));
+    color: var(--gunmetal-dark);
+    border: 1px solid var(--brass-dark);
+    box-shadow: 4px 4px 8px var(--metal-shadow), inset 1px 1px 3px rgba(255,255,255,0.8);
+    padding: 14px 24px;
+    border-radius: 8px;
+    font-size: 16px;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    width: 100%;
+    cursor: pointer;
+    text-shadow: none;
+    margin-top: 32px;
+}
+.mc-btn-primary:hover:not(:disabled) { background: linear-gradient(145deg, #ffe082, var(--brass-light)); }
+
+.mc-btn-danger {
+    background: linear-gradient(145deg, var(--crimson-light), var(--crimson-dark));
+    color: white;
+    border: 1px solid #7f1d1d;
+    box-shadow: 3px 3px 6px var(--metal-shadow);
+    padding: 8px 14px;
+    border-radius: 6px;
+    font-weight: 600;
+    cursor: pointer;
+}
+
+/* --- Layout & Grids --- */
+.mc-header-row { display: flex; gap: 20px; align-items: flex-start; }
+.mc-info-col { flex: 1; }
+.mc-action-col { display: flex; flex-direction: column; gap: 10px; }
+.mc-grid { display: flex; flex-wrap: wrap; gap: 16px; margin-top: 16px; }
+
+/* --- Tags --- */
+.mc-tags { display: flex; gap: 8px; flex-wrap: wrap; }
+.mc-tag { 
+    background: linear-gradient(145deg, var(--metal-white), var(--metal-light));
+    border: 1px solid var(--metal-shadow);
+    color: var(--gunmetal);
+    padding: 4px 10px;
+    border-radius: 12px;
+    font-size: 12px;
+    font-weight: 700;
+    box-shadow: 2px 2px 4px var(--metal-shadow);
+}
+
+/* --- Media --- */
+.mc-img-wrap { position: relative; border-radius: 8px; padding: 4px; background: var(--metal-white); box-shadow: 2px 2px 5px var(--metal-shadow); }
+.mc-cover { width: 140px; height: 90px; object-fit: cover; border-radius: 6px; }
+.mc-gallery-img { width: 120px; height: 80px; object-fit: cover; border-radius: 4px; }
+.mc-video-thumb { width: 280px; height: 160px; border-radius: 6px; border: 2px solid var(--gunmetal); }
+.mc-btn-remove-circle {
+    position: absolute; top: -10px; right: -10px; background: var(--crimson-dark); color: white; border: 2px solid white;
+    border-radius: 50%; width: 26px; height: 26px; cursor: pointer; font-size: 12px; font-weight: bold; box-shadow: 2px 2px 5px rgba(0,0,0,0.3);
+}
+
+/* --- Overrides for React Quill to match theme --- */
+.ql-toolbar { background: var(--metal-light); border-radius: 8px 8px 0 0; border-color: var(--metal-shadow) !important; }
+.ql-container { background: var(--metal-white); border-radius: 0 0 8px 8px; border-color: var(--metal-shadow) !important; font-family: inherit; }
+
+/* --- Login Specific --- */
+.mc-login-page { height: 100vh; width: 100%; background-size: cover; background-position: center; display: flex; justify-content: center; align-items: center; position: relative; }
+/* Frosted glass/metal hybrid for login over background image */
+.mc-login-card { background: rgba(230, 233, 239, 0.85); backdrop-filter: blur(10px); padding: 40px 32px; border-radius: 16px; width: 100%; max-width: 420px; box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3); border: 1px solid rgba(255,255,255,0.4); text-align: center; }
+.mc-login-form { display: flex; flexDirection: column; gap: 16px; margin-top: 24px; text-align: left; }
+
+
+
+/* --- Navbar Layout & Architecture --- */
+.mc-navbar-container {
+    background: linear-gradient(180deg, var(--metal-white), var(--metal-light));
+    border-bottom: 2px solid var(--metal-shadow);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05), inset 0 -1px 0 rgba(255, 255, 255, 0.8);
+    position: sticky;
+    top: 0;
+    z-index: 1000;
+    font-family: 'Inter', -apple-system, sans-serif;
+}
+
+.mc-navbar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0.8rem 1.5rem;
+}
+
+/* --- Brand Typography --- */
+.mc-navbar-brand {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    text-decoration: none;
+}
+
+.mc-navbar-icon {
+    font-size: 22px;
+}
+
+.mc-navbar-logo-text {
+    margin: 0;
+    font-size: 20px;
+    font-weight: 900;
+    letter-spacing: -0.5px;
+    background: linear-gradient(135deg, var(--gunmetal-dark), var(--gunmetal));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+}
+
+/* --- Navigation Links & Interactivity --- */
+.mc-navbar-links {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+}
+
+.mc-navbar-link {
+    text-decoration: none;
+    color: var(--gunmetal);
+    font-size: 13px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    padding: 8px 14px;
+    border-radius: 6px;
+    transition: all 0.2s ease;
+}
+
+.mc-navbar-link:hover {
+    background: rgba(0, 0, 0, 0.04);
+    color: var(--gunmetal-dark);
+}
+
+/* --- Brushed Brass Token Button (+ New Post) --- */
+.mc-navbar-btn-accent {
+    background: linear-gradient(145deg, var(--brass-light), var(--brass-main));
+    color: var(--gunmetal-dark) !important;
+    border: 1px solid var(--brass-dark);
+    box-shadow: 2px 2px 4px var(--metal-shadow), inset 1px 1px 2px rgba(255, 255, 255, 0.6);
+}
+
+.mc-navbar-btn-accent:hover {
+    background: linear-gradient(145deg, #ffe082, var(--brass-light));
+    transform: translateY(-1px);
+    box-shadow: 3px 4px 8px var(--metal-shadow);
+}
+
+/* --- Auth Barrier & Logout --- */
+.mc-navbar-auth {
+    display: flex;
+    align-items: center;
+    padding-left: 16px;
+    border-left: 2px solid var(--metal-shadow);
+}
+
+.mc-navbar-btn-logout {
+    background: transparent;
+    color: var(--crimson-light);
+    border: 1px solid transparent;
+    padding: 8px 14px;
+    font-size: 13px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.mc-navbar-btn-logout:hover {
+    background: #fef2f2;
+    border-color: #fca5a5;
+    color: var(--crimson-dark);
+}
+
+/* --- Mobile System Adaptive Adjustments --- */
+@media (max-width: 640px) {
+    .mc-navbar {
+        padding: 0.8rem 1rem;
+    }
+    .mc-navbar-logo-text {
+        display: none; /* Safely retains space for navigation buttons on tight mobile viewports */
+    }
+    .mc-navbar-auth {
+        border-left: none;
+        padding-left: 0;
+    }
+    .mc-navbar-links {
+        gap: 8px;
+    }
+    .mc-navbar-link {
+        padding: 8px 10px;
+        font-size: 12px;
+    }
+}
+
+/* --- Admin Shell Grid System --- */
+.mc-admin-shell {
+    display: flex;
+    flex-direction: column;
+    height: 100vh;
+    width: 100vw;
+    overflow: hidden;
+    background-color: var(--metal-light);
+    font-family: 'Inter', -apple-system, sans-serif;
+}
+
+/* --- Refactored Premium Header --- */
+.mc-header {
+    height: 70px;
+    background: linear-gradient(180deg, var(--metal-white), var(--metal-light));
+    border-bottom: 2px solid var(--metal-shadow);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0 24px;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.05);
+    z-index: 10;
+}
+
+.mc-header-left, .mc-header-right {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+}
+
+.mc-sidebar-toggle {
+    background: linear-gradient(145deg, var(--metal-white), var(--metal-light));
+    border: 1px solid var(--metal-shadow);
+    box-shadow: 2px 2px 5px var(--metal-shadow);
+    font-size: 18px;
+    padding: 8px 12px;
+    border-radius: 6px;
+    cursor: pointer;
+    color: var(--gunmetal);
+    transition: all 0.2s ease;
+}
+.mc-sidebar-toggle:hover { background: var(--metal-light); }
+
+.mc-profile-zone {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 4px 12px;
+    background: inset 2px 2px 5px var(--metal-shadow);
+    background-color: rgba(255,255,255,0.5);
+    border-radius: 20px;
+    border: 1px solid var(--metal-shadow);
+}
+
+.mc-avatar {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    background: linear-gradient(145deg, var(--brass-light), var(--brass-main));
+    border: 2px solid var(--metal-white);
+    box-shadow: 2px 2px 4px var(--metal-shadow);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 800;
+    font-size: 12px;
+    color: var(--gunmetal-dark);
+}
+
+/* --- Layout Body (Sidebar + Content Container) --- */
+.mc-layout-body {
+    display: flex;
+    flex: 1;
+    overflow: hidden;
+}
+
+/* --- Expandable / Collapsible Sidebar --- */
+.mc-sidebar {
+    height: 100%;
+    background: linear-gradient(145deg, var(--gunmetal), var(--gunmetal-dark));
+    border-right: 2px solid var(--gunmetal-dark);
+    box-shadow: 4px 0 15px rgba(0,0,0,0.15);
+    transition: width 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    overflow-x: hidden;
+    display: flex;
+    flex-direction: column;
+    padding-top: 16px;
+}
+
+.mc-sidebar.expanded { width: 260px; }
+.mc-sidebar.collapsed { width: 68px; }
+
+.mc-sidebar-menu {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    padding: 0 12px;
+}
+
+.mc-sidebar-item {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    padding: 12px 16px;
+    color: var(--metal-light);
+    text-decoration: none;
+    font-weight: 600;
+    font-size: 14px;
+    border-radius: 8px;
+    white-space: nowrap;
+    transition: all 0.2s ease;
+}
+
+.mc-sidebar-item:hover, .mc-sidebar-item.active {
+    background: linear-gradient(145deg, var(--gunmetal-light), var(--gunmetal));
+    color: var(--brass-light);
+    box-shadow: inset 1px 1px 2px rgba(255,255,255,0.1);
+}
+
+.mc-sidebar-icon {
+    font-size: 18px;
+    min-width: 24px;
+    text-align: center;
+}
+
+/* --- Main Dashboard Content Wrapper --- */
+.mc-main-content {
+    flex: 1;
+    padding: 32px;
+    overflow-y: auto;
+    background: linear-gradient(180deg, #f3f4f6, #e5e7eb);
+}
+
+/* --- Dashboard Panel Grid Modules --- */
+.mc-dash-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 24px;
+    margin-bottom: 32px;
+}
+
+.mc-dash-stat-card {
+    background: linear-gradient(145deg, var(--metal-white), var(--metal-light));
+    box-shadow: 6px 6px 12px var(--metal-shadow), -6px -6px 12px var(--metal-white);
+    border: 1px solid rgba(255,255,255,0.6);
+    border-radius: 12px;
+    padding: 24px;
+    display: flex;
+    flex-direction: column;
+}
+
+.mc-dash-stat-val {
+    font-size: 36px;
+    font-weight: 900;
+    color: var(--gunmetal-dark);
+    margin: 8px 0 4px;
+    letter-spacing: -1px;
+}

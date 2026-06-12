@@ -1,18 +1,17 @@
 import { useState } from 'react';
 import { uploadVideo } from '../api/blog';
+import '../styles/MetallicChic.css';
 
 export default function VideoUpload({ videos, setVideos }) {
     const [videoUrl, setVideoUrl] = useState('');
     const [uploading, setUploading] = useState(false);
 
-    // Add YouTube/Vimeo URL
     const addVideoUrl = () => {
         if (!videoUrl.trim()) return;
         setVideos(prev => [...prev, { type: 'url', url: videoUrl, title: '' }]);
         setVideoUrl('');
     };
 
-    // Upload video file
     const handleVideoFile = async (e) => {
         const file = e.target.files[0];
         if (!file) return;
@@ -31,7 +30,6 @@ export default function VideoUpload({ videos, setVideos }) {
         setVideos(prev => prev.filter((_, i) => i !== index));
     };
 
-    // Convert YouTube URL to embed URL
     const getEmbedUrl = (url) => {
         const ytMatch = url.match(/(?:youtube\.com\/watch\?v=|youtu\.be\/)([^&\n?#]+)/);
         if (ytMatch) return `https://www.youtube.com/embed/${ytMatch[1]}`;
@@ -42,56 +40,46 @@ export default function VideoUpload({ videos, setVideos }) {
 
     return (
         <div>
-            {/* Upload video file */}
-            <p style={styles.subLabel}>Upload Video File (mp4, mov)</p>
+            <p className="mc-sub-label">Upload Video File (mp4, mov)</p>
             <input
                 type="file"
                 accept="video/*"
                 onChange={handleVideoFile}
                 disabled={uploading}
+                className="mc-input"
             />
-            {uploading && <p style={{ color: '#4f46e5' }}>Uploading video...</p>}
+            {uploading && <p className="mc-status-text">⏳ Processing metallic video rendering...</p>}
 
-            {/* Paste YouTube/Vimeo URL */}
-            <p style={styles.subLabel}>Or Paste YouTube / Vimeo URL</p>
-            <div style={styles.urlRow}>
+            <p className="mc-sub-label">Or Paste YouTube / Vimeo URL</p>
+            <div className="mc-input-row">
                 <input
-                    style={styles.input}
+                    className="mc-input"
                     value={videoUrl}
                     onChange={e => setVideoUrl(e.target.value)}
                     placeholder="https://youtube.com/watch?v=..."
                 />
-                <button onClick={addVideoUrl} style={styles.addBtn}>+ Add</button>
+                <button onClick={addVideoUrl} className="mc-btn">Add Link</button>
             </div>
 
-            {/* Video Previews */}
-            <div style={{ marginTop: '16px' }}>
+            <div className="mc-grid">
                 {videos.map((video, i) => (
-                    <div key={i} style={styles.videoCard}>
+                    <div key={i} className="mc-sub-card">
                         {video.type === 'url' ? (
                             <iframe
                                 src={getEmbedUrl(video.url)}
-                                style={styles.iframe}
+                                className="mc-video-thumb"
                                 allowFullScreen
                                 title={`video-${i}`}
                             />
                         ) : (
-                            <video src={video.url} controls style={styles.iframe} />
+                            <video src={video.url} controls className="mc-video-thumb" />
                         )}
-                        <button onClick={() => removeVideo(i)} style={styles.remove}>✕ Remove</button>
+                        <div style={{ marginTop: '12px', textAlign: 'right' }}>
+                            <button onClick={() => removeVideo(i)} className="mc-btn-danger">✕ Remove</button>
+                        </div>
                     </div>
                 ))}
             </div>
         </div>
     );
 }
-
-const styles = {
-    subLabel: { fontWeight: 'bold', margin: '12px 0 6px', color: '#555' },
-    urlRow: { display: 'flex', gap: '8px' },
-    input: { flex: 1, padding: '10px', borderRadius: '6px', border: '1px solid #ddd', fontSize: '14px' },
-    addBtn: { background: '#4f46e5', color: 'white', border: 'none', padding: '10px 16px', borderRadius: '6px', cursor: 'pointer' },
-    videoCard: { background: '#f9fafb', borderRadius: '8px', padding: '12px', marginBottom: '12px' },
-    iframe: { width: '100%', height: '200px', borderRadius: '6px', border: 'none' },
-    remove: { marginTop: '8px', background: '#ef4444', color: 'white', border: 'none', padding: '6px 12px', borderRadius: '6px', cursor: 'pointer' },
-};

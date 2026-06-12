@@ -1,0 +1,128 @@
+/* Base Container */
+.navbar-container {
+    background-color: #ffffff;
+    border-bottom: 1px solid #e5e7eb;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+    position: sticky;
+    top: 0;
+    z-index: 1000;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+}
+
+/* Layout Constraints */
+.navbar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0.75rem 1.5rem;
+}
+
+/* Brand / Logo */
+.logo-link {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    text-decoration: none;
+    color: #111827;
+    transition: opacity 0.2s ease;
+}
+
+.logo-link:hover {
+    opacity: 0.8;
+}
+
+.logo-text {
+    margin: 0;
+    font-size: 1.25rem;
+    font-weight: 700;
+    letter-spacing: -0.025em;
+}
+
+.logo-icon {
+    font-size: 1.25rem;
+}
+
+/* Links Container */
+.navbar-links {
+    display: flex;
+    align-items: center;
+    gap: 1.25rem;
+}
+
+/* Standard Links */
+.nav-link {
+    text-decoration: none;
+    color: #4b5563;
+    font-size: 0.95rem;
+    font-weight: 500;
+    padding: 0.5rem 0.75rem;
+    border-radius: 6px;
+    transition: color 0.2s ease, background-color 0.2s ease;
+}
+
+.nav-link:hover {
+    color: #111827;
+    background-color: #f3f4f6;
+}
+
+/* Primary Action Button (New Post) */
+.btn-new-post {
+    background-color: #4f46e5; /* The indigo from your original code */
+    color: #ffffff;
+}
+
+.btn-new-post:hover {
+    background-color: #4338ca;
+    color: #ffffff;
+}
+
+/* Auth Section Separator */
+.navbar-auth {
+    display: flex;
+    align-items: center;
+    margin-left: 0.5rem;
+    padding-left: 1.5rem;
+    border-left: 1px solid #e5e7eb;
+}
+
+/* Logout Button (Destructive Action) */
+.btn-logout {
+    background-color: transparent;
+    color: #ef4444;
+    border: 1px solid transparent;
+    padding: 0.5rem 1rem;
+    font-size: 0.95rem;
+    font-weight: 500;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.btn-logout:hover {
+    background-color: #fef2f2;
+    border-color: #fca5a5;
+}
+
+/* Mobile Responsiveness */
+@media (max-width: 640px) {
+    .navbar {
+        padding: 0.75rem 1rem;
+    }
+    
+    .navbar-links {
+        gap: 0.5rem;
+    }
+    
+    .navbar-auth {
+        padding-left: 0.5rem;
+        margin-left: 0;
+        border-left: none;
+    }
+
+    /* Hide the "Blog Admin" text on small screens, keep the 📝 icon */
+    .logo-text {
+        display: none; 
+    }
+}
