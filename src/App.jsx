@@ -1,3 +1,4 @@
+import React from 'react';
 import { useState, useEffect } from 'react';
 import { BrowserRouter, Route, Routes, Navigate, useLocation, Link, useNavigate } from 'react-router-dom';
 
@@ -14,6 +15,7 @@ import RoleManagement from './components/Role/RoleManagement';
 import ClientList from './components/MeroshareClient/ClientList';
 import UserProfile from './components/User/UserProfile';
 import Login from './components/User/Login';
+import AutomationManager from './components/MeroshareClient/AutomationManager';
 
 function Private({ children }) {
     const token = localStorage.getItem('token');
@@ -247,6 +249,7 @@ export default function App() {
                                     <Route path="/edit/:id" element={<Private><EditPost /></Private>} />
                                     <Route path="/users" element={<Private><UserManagement /></Private>} />
                                     <Route path="/roles" element={<Private><RoleManagement /></Private>} />
+                                    <Route path="/automation" element={<Private><AutomationManager /></Private>} />
                                 </>
                             )}
 
@@ -263,6 +266,8 @@ export default function App() {
                                     <Route path="/edit/:id" element={<Private><Unauthorized /></Private>} />
                                     <Route path="/users" element={<Private><Unauthorized /></Private>} />
                                     <Route path="/roles" element={<Private><Unauthorized /></Private>} />
+                                    <Route path="/automation" element={<Private><AutomationManager /></Private>} />
+
                                 </>
                             )}
                         </Routes>

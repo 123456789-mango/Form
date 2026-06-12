@@ -620,13 +620,12 @@ const AutomationManager = ({ userId }) => {
             <div key={index} className="log-item">
               <div className="log-time">{new Date(log.timestamp).toLocaleString()}</div>
               <div
-                className={`log-type ${
-                  log.type.includes('SUCCESS')
+                className={`log-type ${log.type.includes('SUCCESS')
                     ? 'success'
                     : log.type.includes('ERROR')
                       ? 'error'
                       : 'info'
-                }`}
+                  }`}
               >
                 {log.type}
               </div>
