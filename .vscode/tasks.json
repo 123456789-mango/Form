@@ -1,0 +1,58 @@
+{
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "label": "ui",
+      "type": "shell",
+      "command": " npm run dev",
+      "options": {
+        "cwd": "C:\\Form"
+      },
+      "presentation": {
+        "panel": "dedicated",
+        "group": "react"
+      },
+      "problemMatcher": "$msCompile"
+    },
+    {
+      "label": "server",
+      "type": "shell",
+      "command": "npm run server",
+      "options": {
+        "cwd": "C:\\Form"
+      },
+      "presentation": {
+        "panel": "dedicated",
+        "group": "react"
+      },
+      "problemMatcher": "$msCompile"
+    },
+    // {
+    //   "label": "API",
+    //   "type": "shell",
+    //   "command": "dotnet watch",
+    //   "options": {
+    //     "cwd": "C:\\Neemaacademy\\NeemaDev3\\Neemaacademy\\DesktopAndApi\\Neemacademy.API"
+    //   },
+    //   "presentation": {
+    //     "panel": "dedicated",
+    //     "group": "dotnet"
+    //   },
+    //   "problemMatcher": "$msCompile"
+    // },
+    {
+      "label": "Run All",
+      "dependsOn": [
+        "ui",
+        "server",
+        // "API"
+      ],
+      "dependsOrder": "parallel",
+      "group": {
+        "kind": "build",
+        "isDefault": true
+      },
+      "problemMatcher": []
+    }
+  ]
+}

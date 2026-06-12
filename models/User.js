@@ -10,6 +10,10 @@ const userSchema = new mongoose.Schema({
   department: { type: String, default: '' },
   profileImage: { type: String, default: '' },
   bio: { type: String, default: '' },
+  // Session management
+  refreshToken: { type: String, default: null },
+  lastActivityAt: { type: Date, default: Date.now },
+  isActive: { type: Boolean, default: true },
 }, { timestamps: true });
 
 module.exports = mongoose.model('User', userSchema);

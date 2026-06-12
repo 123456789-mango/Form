@@ -5,6 +5,7 @@ import '../styles/MetallicChic.css';
 export default function UserManagement() {
     const [users, setUsers] = useState([]);
     const [loading, setLoading] = useState(true);
+    const [showForm, setShowForm] = useState(false);
     const [editingId, setEditingId] = useState(null);
     const [editForm, setEditForm] = useState({});
     const [error, setError] = useState('');
@@ -42,9 +43,59 @@ export default function UserManagement() {
         setError('');
     };
 
+    const handleCreateStart = () => {
+        setShowForm(true);
+        setEditingId(null);
+        setEditForm({
+            username: '',
+            password: '',
+            displayName: '',
+            email: '',
+            phone: '',
+            department: '',
+            role: 'user',
+            bio: ''
+        });
+        setError('');
+    };
+
     const handleEditChange = (e) => {
         const { name, value } = e.target;
         setEditForm(prev => ({ ...prev, [name]: value }));
+    };
+
+    const handleCreateUser = async (e) => {
+        e.preventDefault();
+        setError('');
+
+        if (!editForm.username || !editForm.password) {
+            setError('Username and password are required');
+            return;
+        }
+
+        try {
+            const token = localStorage.getItem('token');
+            const res = await axios.post(
+                `${import.meta.env.VITE_API_URL}/api/users`,
+                {
+                    username: editForm.username,
+                    password: editForm.password,
+                    displayName: editForm.displayName,
+                    email: editForm.email,
+                    phone: editForm.phone,
+                    department: editForm.department,
+                    role: editForm.role
+                },
+                { headers: { Authorization: `Bearer ${token}` } }
+            );
+            setUsers([res.data.user, ...users]);
+            setSuccess('User created successfully');
+            setShowForm(false);
+            setEditForm({});
+            setTimeout(() => setSuccess(''), 3000);
+        } catch (err) {
+            setError(err.response?.data?.error || 'Failed to create user');
+        }
     };
 
     const handleUpdateUser = async (userId) => {
@@ -90,10 +141,127 @@ export default function UserManagement() {
 
     return (
         <div className="mc-page-container">
-            <h2 className="mc-title">Users Management</h2>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px' }}>
+                <h2 className="mc-title">Users Management</h2>
+                {!showForm && (
+                    <button onClick={handleCreateStart} className="mc-btn-primary">
+                        ➕ Add New User
+                    </button>
+                )}
+            </div>
 
             {error && <div style={{ color: '#dc2626', padding: '12px', marginBottom: '16px', backgroundColor: '#fee2e2', borderRadius: '6px' }}>{error}</div>}
             {success && <div style={{ color: '#059669', padding: '12px', marginBottom: '16px', backgroundColor: '#d1fae5', borderRadius: '6px' }}>{success}</div>}
+
+            {showForm && !editingId && (
+                <div className="mc-card" style={{ marginBottom: '24px' }}>
+                    <h3 className="mc-title" style={{ fontSize: '18px', marginBottom: '16px' }}>Create New User</h3>
+                    <form onSubmit={handleCreateUser}>
+                        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
+                            <div>
+                                <label className="mc-label">Username *</label>
+                                <input
+                                    type="text"
+                                    name="username"
+                                    value={editForm.username}
+                                    onChange={handleEditChange}
+                                    className="mc-input"
+                                    placeholder="Username"
+                                    required
+                                />
+                            </div>
+                            <div>
+                                <label className="mc-label">Password *</label>
+                                <input
+                                    type="password"
+                                    name="password"
+                                    value={editForm.password}
+                                    onChange={handleEditChange}
+                                    className="mc-input"
+                                    placeholder="Password"
+                                    required
+                                />
+                            </div>
+                        </div>
+
+                        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
+                            <div>
+                                <label className="mc-label">Display Name</label>
+                                <input
+                                    type="text"
+                                    name="displayName"
+                                    value={editForm.displayName}
+                                    onChange={handleEditChange}
+                                    className="mc-input"
+                                    placeholder="Display Name"
+                                />
+                            </div>
+                            <div>
+                                <label className="mc-label">Email</label>
+                                <input
+                                    type="email"
+                                    name="email"
+                                    value={editForm.email}
+                                    onChange={handleEditChange}
+                                    className="mc-input"
+                                    placeholder="Email"
+                                />
+                            </div>
+                        </div>
+
+                        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
+                            <div>
+                                <label className="mc-label">Phone</label>
+                                <input
+                                    type="tel"
+                                    name="phone"
+                                    value={editForm.phone}
+                                    onChange={handleEditChange}
+                                    className="mc-input"
+                                    placeholder="Phone"
+                                />
+                            </div>
+                            <div>
+                                <label className="mc-label">Department</label>
+                                <input
+                                    type="text"
+                                    name="department"
+                                    value={editForm.department}
+                                    onChange={handleEditChange}
+                                    className="mc-input"
+                                    placeholder="Department"
+                                />
+                            </div>
+                        </div>
+
+                        <div>
+                            <label className="mc-label">Role</label>
+                            <select
+                                name="role"
+                                value={editForm.role}
+                                onChange={handleEditChange}
+                                className="mc-input"
+                            >
+                                <option value="user">User</option>
+                                <option value="admin">Admin</option>
+                            </select>
+                        </div>
+
+                        <div style={{ display: 'flex', gap: '12px', marginTop: '16px' }}>
+                            <button type="submit" className="mc-btn-primary">
+                                💾 Create User
+                            </button>
+                            <button
+                                type="button"
+                                onClick={() => { setShowForm(false); setEditForm({}); }}
+                                className="mc-btn-secondary"
+                            >
+                                Cancel
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            )}
 
             <div style={{ marginBottom: '20px' }}>
                 <input

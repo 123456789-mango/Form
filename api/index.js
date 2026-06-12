@@ -50,6 +50,7 @@ app.use('/api/posts', require('../routes/posts'));
 app.use('/api/upload', require('../routes/upload')); // ← handles /api/upload, /api/upload/gallery, /api/upload/video
 app.use('/api/auth', require('../routes/auth'));
 app.use('/api/users', require('../routes/users'));
+app.use('/api/roles', require('../routes/roles'));
 app.use('/api/clients', require('../routes/clients'));
 app.use('/api/dashboard', require('../routes/dashboard'));
 

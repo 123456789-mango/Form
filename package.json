@@ -8,7 +8,9 @@
     "build": "node node_modules/vite/bin/vite.js build",
     "vercel-build": "node node_modules/vite/bin/vite.js build --debug",
     "server": "nodemon api/index.js",
-    "start": "concurrently \"npm run server\" \"npm run dev\""
+    "start": "concurrently \"npm run server\" \"npm run dev\"",
+    "prepare": "husky install",
+    "lint": "eslint . --ext .js,.jsx 2>/dev/null || true"
   },
   "keywords": [],
   "author": "",
@@ -35,7 +37,14 @@
     "bcryptjs": "^2.4.3",
     "concurrently": "^9.1.2",
     "esbuild": "^0.28.0",
+    "eslint": "^8.56.0",
+    "husky": "^8.0.0",
     "jsonwebtoken": "^9.0.3",
+    "lint-staged": "^15.2.0",
     "nodemon": "^3.1.10"
+  },
+  "lint-staged": {
+    "*.js": "eslint --fix",
+    "*.jsx": "eslint --fix"
   }
 }

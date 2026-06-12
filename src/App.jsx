@@ -6,8 +6,11 @@ import PostList from './pages/PostList';
 import ClientList from './pages/ClientList';
 import UserProfile from './pages/UserProfile';
 import UserManagement from './pages/UserManagement';
+import RoleManagement from './pages/RoleManagement';
 import Login from './pages/Login';
 import Dashboard from './pages/Dashboard';
+import UserDashboard from './pages/UserDashboard';
+import { useSessionManagement } from './hooks/useSessionManagement';
 import './styles/MetallicChic.css';
 
 function Private({ children }) {
@@ -24,6 +27,27 @@ export default function App() {
         const navigate = useNavigate();
         const [sidebarExpanded, setSidebarExpanded] = useState(true);
         const [profileDropdownOpen, setProfileDropdownOpen] = useState(false);
+        const [userRole, setUserRole] = useState('user');
+        const [userName, setUserName] = useState('User');
+
+        // Get user role from localStorage
+        useEffect(() => {
+            const userData = localStorage.getItem('user');
+            if (userData) {
+                try {
+                    const user = JSON.parse(userData);
+                    setUserRole(user.role || 'user');
+                    setUserName(user.displayName || user.username || 'User');
+                } catch (err) {
+                    console.error('Error parsing user data:', err);
+                }
+            }
+        }, []);
+
+        // Session management with inactivity logout and token refresh
+        useSessionManagement(() => {
+            navigate('/login?reason=sessionExpired');
+        });
 
         // Close dropdown when location changes
         useEffect(() => {
@@ -31,9 +55,12 @@ export default function App() {
         }, [location.pathname]);
 
         const isAuthPage = location.pathname === '/login';
+        const isAdmin = userRole === 'admin';
 
         const handleLogout = () => {
             localStorage.removeItem('token');
+            localStorage.removeItem('refreshToken');
+            localStorage.removeItem('user');
             setProfileDropdownOpen(false);
             navigate('/login');
         };
@@ -89,8 +116,9 @@ export default function App() {
                                 onMouseEnter={(e) => e.target.style.backgroundColor = '#f3f4f6'}
                                 onMouseLeave={(e) => e.target.style.backgroundColor = profileDropdownOpen ? '#f3f4f6' : 'transparent'}
                             >
-                                <div className="mc-avatar">AD</div>
-                                <span style={{ fontSize: '13px', fontWeight: '700', color: '#1f2937' }}>Administrator</span>
+                                <div className="mc-avatar">{isAdmin ? 'AD' : 'US'}</div>
+                                <span style={{ fontSize: '13px', fontWeight: '700', color: '#1f2937' }}>{userName}</span>
+                                <span style={{ fontSize: '12px', color: '#6b7280' }}>▼</span>
                                 <span style={{ fontSize: '12px', color: '#6b7280' }}>▼</span>
                             </button>
 
@@ -166,39 +194,73 @@ export default function App() {
                                 <span className="mc-sidebar-icon">📊</span>
                                 {sidebarExpanded && <span>Dashboard</span>}
                             </Link>
-                            <Link to="/posts" className={`mc-sidebar-item ${location.pathname === '/posts' ? 'active' : ''}`}>
-                                <span className="mc-sidebar-icon">📰</span>
-                                {sidebarExpanded && <span>All Posts</span>}
-                            </Link>
-                            <Link to="/create" className={`mc-sidebar-item ${location.pathname === '/create' ? 'active' : ''}`}>
-                                <span className="mc-sidebar-icon">✨</span>
-                                {sidebarExpanded && <span>Create Post</span>}
-                            </Link>
+
+                            {/* Admin-only menu items */}
+                            {isAdmin && (
+                                <>
+                                    <Link to="/posts" className={`mc-sidebar-item ${location.pathname === '/posts' ? 'active' : ''}`}>
+                                        <span className="mc-sidebar-icon">📰</span>
+                                        {sidebarExpanded && <span>All Posts</span>}
+                                    </Link>
+                                    <Link to="/create" className={`mc-sidebar-item ${location.pathname === '/create' ? 'active' : ''}`}>
+                                        <span className="mc-sidebar-icon">✨</span>
+                                        {sidebarExpanded && <span>Create Post</span>}
+                                    </Link>
+                                </>
+                            )}
+
+                            {/* Available to all users */}
                             <Link to="/clients" className={`mc-sidebar-item ${location.pathname === '/clients' ? 'active' : ''}`}>
                                 <span className="mc-sidebar-icon">👥</span>
                                 {sidebarExpanded && <span>Clients</span>}
                             </Link>
-                            {/* <Link to="/profile" className={`mc-sidebar-item ${location.pathname === '/profile' ? 'active' : ''}`}>
-                                <span className="mc-sidebar-icon">👤</span>
-                                {sidebarExpanded && <span>My Profile</span>}
-                            </Link> */}
-                            <Link to="/users" className={`mc-sidebar-item ${location.pathname === '/users' ? 'active' : ''}`}>
-                                <span className="mc-sidebar-icon">👨‍💼</span>
-                                {sidebarExpanded && <span>Users</span>}
-                            </Link>
+
+                            {/* Admin-only menu items */}
+                            {isAdmin && (
+                                <>
+                                    <Link to="/users" className={`mc-sidebar-item ${location.pathname === '/users' ? 'active' : ''}`}>
+                                        <span className="mc-sidebar-icon">👨‍💼</span>
+                                        {sidebarExpanded && <span>Users</span>}
+                                    </Link>
+                                    <Link to="/roles" className={`mc-sidebar-item ${location.pathname === '/roles' ? 'active' : ''}`}>
+                                        <span className="mc-sidebar-icon">🔐</span>
+                                        {sidebarExpanded && <span>Roles</span>}
+                                    </Link>
+                                </>
+                            )}
                         </nav>
                     </aside>
 
                     {/* Primary Application Target Port */}
                     <main className="mc-main-content">
                         <Routes>
-                            <Route path="/" element={<Private><Dashboard /></Private>} />
-                            <Route path="/posts" element={<Private><PostList /></Private>} />
-                            <Route path="/create" element={<Private><CreatePost /></Private>} />
-                            <Route path="/edit/:id" element={<Private><EditPost /></Private>} />
+                            {/* Dashboard - different for admin and users */}
+                            <Route path="/" element={<Private>{isAdmin ? <Dashboard /> : <UserDashboard />}</Private>} />
+
+                            {/* Admin-only routes */}
+                            {isAdmin && (
+                                <>
+                                    <Route path="/posts" element={<Private><PostList /></Private>} />
+                                    <Route path="/create" element={<Private><CreatePost /></Private>} />
+                                    <Route path="/edit/:id" element={<Private><EditPost /></Private>} />
+                                    <Route path="/users" element={<Private><UserManagement /></Private>} />
+                                    <Route path="/roles" element={<Private><RoleManagement /></Private>} />
+                                </>
+                            )}
+
+                            {/* Available to all users */}
                             <Route path="/clients" element={<Private><ClientList /></Private>} />
                             <Route path="/profile" element={<Private><UserProfile /></Private>} />
-                            <Route path="/users" element={<Private><UserManagement /></Private>} />
+
+                            {/* Fallback for unauthorized access attempts */}
+                            {!isAdmin && (
+                                <>
+                                    <Route path="/posts" element={<Private><Navigate to="/" replace /></Private>} />
+                                    <Route path="/create" element={<Private><Navigate to="/" replace /></Private>} />
+                                    <Route path="/users" element={<Private><Navigate to="/" replace /></Private>} />
+                                    <Route path="/roles" element={<Private><Navigate to="/" replace /></Private>} />
+                                </>
+                            )}
                         </Routes>
                     </main>
                 </div>
