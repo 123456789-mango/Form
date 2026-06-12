@@ -12,6 +12,7 @@ import Dashboard from './pages/Dashboard';
 import UserDashboard from './pages/UserDashboard';
 import { useSessionManagement } from './hooks/useSessionManagement';
 import './styles/MetallicChic.css';
+import Unauthorized from './components/unauthorized/Unauthorized';
 
 function Private({ children }) {
     const token = localStorage.getItem('token');
@@ -253,12 +254,14 @@ export default function App() {
                             <Route path="/profile" element={<Private><UserProfile /></Private>} />
 
                             {/* Fallback for unauthorized access attempts */}
+                            {/* Fallback for unauthorized access attempts */}
                             {!isAdmin && (
                                 <>
-                                    <Route path="/posts" element={<Private><Navigate to="/" replace /></Private>} />
-                                    <Route path="/create" element={<Private><Navigate to="/" replace /></Private>} />
-                                    <Route path="/users" element={<Private><Navigate to="/" replace /></Private>} />
-                                    <Route path="/roles" element={<Private><Navigate to="/" replace /></Private>} />
+                                    <Route path="/posts" element={<Private><Unauthorized /></Private>} />
+                                    <Route path="/create" element={<Private><Unauthorized /></Private>} />
+                                    <Route path="/edit/:id" element={<Private><Unauthorized /></Private>} />
+                                    <Route path="/users" element={<Private><Unauthorized /></Private>} />
+                                    <Route path="/roles" element={<Private><Unauthorized /></Private>} />
                                 </>
                             )}
                         </Routes>
