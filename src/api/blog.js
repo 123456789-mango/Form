@@ -18,8 +18,15 @@ const authHeaders = (isJson = true) => {
     return headers;
 };
 
-export const getAllPosts = async () => (await fetch(`${BASE_URL}/api/posts`)).json();
-export const getPost = async (id) => (await fetch(`${BASE_URL}/api/posts/${id}`)).json();
+export const getAllPosts = async () => {
+    const res = await fetch(`${BASE_URL}/api/posts`, { headers: authHeaders(false) });
+    return res.json();
+};
+
+export const getPost = async (id) => {
+    const res = await fetch(`${BASE_URL}/api/posts/${id}`, { headers: authHeaders(false) });
+    return res.json();
+};
 
 export const createPost = async (postData) => {
     const res = await fetch(`${BASE_URL}/api/posts`, {
