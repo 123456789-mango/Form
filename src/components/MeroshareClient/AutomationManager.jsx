@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
-import '../styles/AutomationManager.css';
+import './AutomationManager.css';
 
 const AutomationManager = ({ userId }) => {
   const [schedules, setSchedules] = useState([]);
