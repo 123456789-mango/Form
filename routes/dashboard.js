@@ -10,10 +10,10 @@ router.get('/stats', auth, async (req, res) => {
         // Count posts
         const totalPosts = await Post.countDocuments();
         const galleryCount = await Post.aggregate([
-            { $group: { _id: null, total: { $sum: { $size: '$gallery' } } } }
+            { $group: { _id: null, total: { $sum: { $size: { $ifNull: ['$gallery', []] } } } } }
         ]);
         const videoCount = await Post.aggregate([
-            { $group: { _id: null, total: { $sum: { $size: '$videos' } } } }
+            { $group: { _id: null, total: { $sum: { $size: { $ifNull: ['$videos', []] } } } } }
         ]);
 
         // Count users
