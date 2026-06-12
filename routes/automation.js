@@ -97,7 +97,7 @@ router.get('/stats', auth, async (req, res) => {
   res.set('Cache-Control', 'no-store');
   try {
     const user = await User.findById(req.user.id);
-    let query = {};
+    const query = {};
 
     if (user.role !== 'admin') {
       query.userId = req.user.id;
@@ -359,5 +359,59 @@ router.delete('/schedule/:id', auth, async (req, res) => {
     res.status(500).json({ error: error.message });
   }
 });
+
+router.post('/apply', async (req, res) => {
+  const { clientId, targetShareId } = req.body;
+  let service = null;
+
+  try {
+    // 1. Fetch client details from Database
+    const client = await Client.findById(clientId);
+    if (!client) {
+      return res.status(404).json({ error: 'Client not found' });
+    }
+
+    // 2. Initialize MeroShare Service
+    service = new MeroShareService();
+
+    // 3. Login to MeroShare
+    // ⚠️ Ensure these field names (username, password, pin) match your Client model schema!
+    await service.login(client.username, client.password, client.pin);
+    
+    // 4. Apply for the IPO
+    // findAndApplyForShare requires options like crn, bankCode, noOfShare
+    const options = {
+      targetCompanyShareId: targetShareId || undefined, // If empty, it auto-selects the best IPO
+      crn: client.crn, 
+      bankCode: client.bankCode, // ⚠️ Ensure your Client model has a bankCode field
+      noOfShare: client.noOfShare || 10, // Default to 10 shares if not specified in DB
+    };
+
+    const result = await service.findAndApplyForShare(options); 
+    
+    // 5. Send success response back to frontend
+    res.json({ 
+      success: true, 
+      message: result?.appliedFor 
+        ? `Successfully applied for ${result.appliedFor}` 
+        : 'IPO applied successfully',
+      details: result 
+    });
+
+  } catch (err) {
+    console.error('Apply error:', err);
+    res.status(500).json({ 
+      error: err.message || 'Failed to apply for IPO' 
+    });
+  } finally {
+    // 6. ALWAYS logout to clean up the session, even if an error occurred during apply
+    if (service) {
+      await service.logout().catch(logoutErr => {
+        console.error('Logout cleanup failed:', logoutErr.message);
+      });
+    }
+  }
+});
+
 
 module.exports = router;

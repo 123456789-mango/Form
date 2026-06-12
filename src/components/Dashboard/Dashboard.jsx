@@ -3,7 +3,6 @@ import { useEffect, useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import axios from 'axios';
 import '../../styles/MetallicChic.css';
-import AutomationManager from '../MeroshareClient/AutomationManager';
 export default function Dashboard() {
     const [stats, setStats] = useState({
         posts: { total: 0, galleries: 0, videos: 0 },
@@ -75,7 +74,6 @@ export default function Dashboard() {
                     <span className="mc-meta" style={{ margin: 0 }}>Client portfolio</span>
                 </div>
             </div>
-            <AutomationManager />
             {/* Recent Activity Section */}
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '24px', marginTop: '32px' }}>
                 {/* Recent Posts */}

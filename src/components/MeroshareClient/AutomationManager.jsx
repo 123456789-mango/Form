@@ -1,596 +1,223 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
-import './AutomationManager.css';
+import './AutomationManager.css'; // Ensure this CSS file exists
 
-// Removed unused 'userId' prop to fix Vite/Rolldown parser crash and ESLint warning
-const AutomationManager = () => {
-  const [schedules, setSchedules] = useState([]);
+export default function AutomationManager() {
   const [clients, setClients] = useState([]);
-  const [stats, setStats] = useState(null);
+  const [selectedClients, setSelectedClients] = useState([]);
+  
+  // Configuration States
+  const [startDateTime, setStartDateTime] = useState('');
+  const [delayMinutes, setDelayMinutes] = useState(2);
+  const [targetShareId, setTargetShareId] = useState('');
+  
+  // Execution States
+  const [isRunning, setIsRunning] = useState(false);
   const [logs, setLogs] = useState([]);
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState('');
-  const [success, setSuccess] = useState('');
-
-  const [showForm, setShowForm] = useState(false);
-  const [formData, setFormData] = useState({
-    clientId: '',
-    scheduleType: 'hourly',
-    intervalHours: 2,
-    specificTimes: [],
-    timeRangeStart: '09:00',
-    timeRangeEnd: '17:00',
-    frequencyInRange: 30,
-    maxSharesPerDay: 10,
-    targetCompanyShareId: '',
-    notes: '',
-  });
-
-  const [editingId, setEditingId] = useState(null);
-  const [testingClientId, setTestingClientId] = useState(null);
-  const [testResult, setTestResult] = useState(null);
 
   useEffect(() => {
-    loadSchedules();
     loadClients();
-    loadStats();
-    loadLogs();
-
-    const interval = setInterval(() => {
-      loadStats();
-      loadLogs();
-    }, 30000);
-
-    return () => clearInterval(interval);
+    // Set default start time to current local time
+    const now = new Date();
+    now.setMinutes(now.getMinutes() - now.getTimezoneOffset());
+    setStartDateTime(now.toISOString().slice(0, 16));
   }, []);
-
-  const loadSchedules = async () => {
-    try {
-      const response = await axios.get('/api/automation/schedules', {
-        headers: { Authorization: `Bearer ${localStorage.getItem('token')}` },
-      });
-      setSchedules(response.data);
-    } catch (err) {
-      setError('Failed to load schedules');
-      console.error(err);
-    }
-  };
 
   const loadClients = async () => {
     try {
-      const response = await axios.get('/api/clients', {
-        headers: { Authorization: `Bearer ${localStorage.getItem('token')}` },
+      const res = await axios.get('/api/clients', {
+        headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
       });
-      setClients(response.data);
+      setClients(res.data);
     } catch (err) {
       console.error('Failed to load clients:', err);
     }
   };
 
-  const loadStats = async () => {
-    try {
-      const response = await axios.get('/api/automation/stats', {
-        headers: { Authorization: `Bearer ${localStorage.getItem('token')}` },
-      });
-      setStats(response.data);
-    } catch (err) {
-      console.error('Failed to load stats:', err);
+  const toggleClient = (id) => {
+    setSelectedClients(prev => 
+      prev.includes(id) ? prev.filter(c => c !== id) : [...prev, id]
+    );
+  };
+
+  const selectAll = () => {
+    if (selectedClients.length === clients.length) {
+      setSelectedClients([]);
+    } else {
+      setSelectedClients(clients.map(c => c._id));
     }
   };
 
-  const loadLogs = async () => {
-    try {
-      const response = await axios.get('/api/automation/logs?limit=20', {
-        headers: { Authorization: `Bearer ${localStorage.getItem('token')}` },
-      });
-      setLogs(response.data);
-    } catch (err) {
-      console.error('Failed to load logs:', err);
+  const addLog = (message, type = 'info') => {
+    const time = new Date().toLocaleTimeString();
+    setLogs(prev => [...prev, { message, type, time }]);
+  };
+
+  const sleep = (ms) => new Promise(resolve => setTimeout(resolve, ms));
+
+  const startAutomation = async () => {
+    if (selectedClients.length === 0) {
+      alert('Please select at least one client to apply for.');
+      return;
     }
-  };
+    
+    const startTime = new Date(startDateTime);
+    const confirmMsg = `Start applying for ${selectedClients.length} accounts?\n\nStart Time: ${startTime.toLocaleString()}\nDelay between accounts: ${delayMinutes} minutes`;
+    
+    if (!window.confirm(confirmMsg)) return;
 
-  const handleFormChange = (e) => {
-    const { name, value } = e.target;
-    const numericFields = ['intervalHours', 'maxSharesPerDay', 'frequencyInRange'];
-    setFormData({
-      ...formData,
-      [name]: numericFields.includes(name) ? parseInt(value) : value,
-    });
-  };
+    setIsRunning(true);
+    setLogs([]);
+    addLog(`🚀 Batch initialized for ${selectedClients.length} accounts.`);
 
-  const handleSpecificTimesChange = (index, value) => {
-    const newTimes = [...(formData.specificTimes || [])];
-    newTimes[index] = value;
-    setFormData({ ...formData, specificTimes: newTimes });
-  };
-
-  const addTimeField = () => {
-    setFormData({
-      ...formData,
-      specificTimes: [...(formData.specificTimes || []), '09:15'],
-    });
-  };
-
-  const removeTimeField = (index) => {
-    const newTimes = formData.specificTimes.filter((_, i) => i !== index);
-    setFormData({ ...formData, specificTimes: newTimes });
-  };
-
-  const testClient = async (clientId) => {
-    setTestingClientId(clientId);
-    setTestResult(null);
-    try {
-      const response = await axios.post(`/api/automation/test/${clientId}`, {}, {
-        headers: { Authorization: `Bearer ${localStorage.getItem('token')}` },
-      });
-      setTestResult({
-        success: true,
-        data: response.data.details,
-      });
-      setSuccess('Connection test successful!');
-    } catch (err) {
-      setTestResult({
-        success: false,
-        error: err.response?.data?.error || err.message,
-      });
-      setError('Connection test failed');
+    // 1. Wait until the specified Start Time (if it's in the future)
+    const now = new Date();
+    const initialDelay = startTime - now;
+    if (initialDelay > 0) {
+      addLog(`⏳ Waiting until ${startTime.toLocaleString()} to start...`);
+      await sleep(initialDelay);
     }
-    setTestingClientId(null);
-  };
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    setLoading(true);
-    setError('');
-    setSuccess('');
+    // 2. Process each client sequentially
+    for (let i = 0; i < selectedClients.length; i++) {
+      const clientId = selectedClients[i];
+      const client = clients.find(c => c._id === clientId);
+      
+      addLog(`🔄 [${i + 1}/${selectedClients.length}] Processing: ${client.name}...`);
 
-    try {
-      if (editingId) {
-        await axios.put(`/api/automation/schedule/${editingId}`, formData, {
-          headers: { Authorization: `Bearer ${localStorage.getItem('token')}` },
+      try {
+        const res = await axios.post('/api/automation/apply', { 
+          clientId, 
+          targetShareId 
+        }, {
+          headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
         });
-        setSuccess('Schedule updated successfully!');
-        setEditingId(null);
-      } else {
-        await axios.post('/api/automation/schedule', formData, {
-          headers: { Authorization: `Bearer ${localStorage.getItem('token')}` },
-        });
-        setSuccess('Schedule created successfully!');
+        addLog(`✅ Success: ${client.name} - ${res.data.message}`, 'success');
+      } catch (err) {
+        const errMsg = err.response?.data?.error || err.message;
+        addLog(`❌ Failed: ${client.name} - ${errMsg}`, 'error');
       }
 
-      setFormData({
-        clientId: '',
-        scheduleType: 'hourly',
-        intervalHours: 2,
-        specificTimes: [],
-        timeRangeStart: '09:00',
-        timeRangeEnd: '17:00',
-        frequencyInRange: 30,
-        maxSharesPerDay: 10,
-        targetCompanyShareId: '',
-        notes: '',
-      });
-      setShowForm(false);
-
-      loadSchedules();
-      loadStats();
-    } catch (err) {
-      setError(err.response?.data?.error || err.message);
-    } finally {
-      setLoading(false);
+      // 3. Wait for the specified delay before the next account (if not the last one)
+      if (i < selectedClients.length - 1) {
+        addLog(`⏳ Waiting ${delayMinutes} minutes before next account...`);
+        await sleep(delayMinutes * 60 * 1000);
+      }
     }
-  };
 
-  const handleEdit = (schedule) => {
-    setFormData({
-      clientId: schedule.clientId._id,
-      scheduleType: schedule.scheduleType,
-      intervalHours: schedule.intervalHours || 2,
-      specificTimes: schedule.specificTimes || [],
-      timeRangeStart: schedule.timeRangeStart || '09:00',
-      timeRangeEnd: schedule.timeRangeEnd || '17:00',
-      frequencyInRange: schedule.frequencyInRange || 30,
-      maxSharesPerDay: schedule.maxSharesPerDay || 10,
-      targetCompanyShareId: schedule.targetCompanyShareId || '',
-      notes: schedule.notes || '',
-    });
-    setEditingId(schedule._id);
-    setShowForm(true);
-  };
-
-  const handleDelete = async (id) => {
-    if (!window.confirm('Are you sure you want to delete this schedule?')) return;
-
-    try {
-      await axios.delete(`/api/automation/schedule/${id}`, {
-        headers: { Authorization: `Bearer ${localStorage.getItem('token')}` },
-      });
-      setSuccess('Schedule deleted successfully!');
-      loadSchedules();
-      loadStats();
-    } catch (err) {
-      setError(err.response?.data?.error || err.message);
-    }
-  };
-
-  const handleTrigger = async (id) => {
-    setLoading(true);
-    try {
-      await axios.post(`/api/automation/trigger/${id}`, {}, {
-        headers: { Authorization: `Bearer ${localStorage.getItem('token')}` },
-      });
-      setSuccess('Schedule triggered manually!');
-      loadSchedules();
-      loadLogs();
-    } catch (err) {
-      setError(err.response?.data?.error || err.message);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const handleToggleActive = async (schedule) => {
-    try {
-      await axios.put(
-        `/api/automation/schedule/${schedule._id}`,
-        { isActive: !schedule.isActive },
-        {
-          headers: { Authorization: `Bearer ${localStorage.getItem('token')}` },
-        }
-      );
-      setSuccess(schedule.isActive ? 'Schedule deactivated' : 'Schedule activated');
-      loadSchedules();
-      loadStats();
-    } catch (err) {
-      setError(err.response?.data?.error || err.message);
-    }
-  };
-
-  const getScheduleTypeLabel = (type) => {
-    const labels = {
-      hourly: 'Every N Hours',
-      'specific-time': 'Specific Times Daily',
-      'time-range': 'Within Time Range',
-      daily: 'Daily',
-      once: 'One-Time',
-    };
-    return labels[type] || type;
-  };
-
-  const getScheduleDescription = (sched) => {
-    switch (sched.scheduleType) {
-      case 'hourly':
-        return `Every ${sched.intervalHours} hour(s)`;
-      case 'specific-time':
-        return `At ${sched.specificTimes?.join(', ')}`;
-      case 'time-range':
-        return `${sched.timeRangeStart}-${sched.timeRangeEnd} every ${sched.frequencyInRange}min`;
-      case 'daily':
-        return `Daily at ${sched.specificTimes?.[0]}`;
-      case 'once':
-        return `Once at ${new Date(sched.nextScheduledTime).toLocaleString()}`;
-      default:
-        return 'Unknown';
-    }
+    addLog('🏁 Batch automation completed!');
+    setIsRunning(false);
   };
 
   return (
-    <div className="automation-manager">
-      <div className="automation-header">
-        <h1>🤖 MeroShare Automation</h1>
-        {!showForm && (
-          <button className="btn-primary" onClick={() => setShowForm(true)}>
-            + New Schedule
-          </button>
-        )}
+    <div className="automation-container" style={{ padding: '20px', maxWidth: '1000px', margin: '0 auto' }}>
+      <h1>🤖 Sequential IPO Automation</h1>
+      <p style={{ color: '#666' }}>Select accounts, set your timing, and let the system apply sequentially.</p>
+
+      {/* Configuration Panel */}
+      <div className="config-card" style={{ background: '#f9f9f9', padding: '20px', borderRadius: '8px', marginBottom: '20px' }}>
+        <h3>⚙️ Configuration</h3>
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '15px', marginTop: '10px' }}>
+          <div>
+            <label>Start Time</label>
+            <input 
+              type="datetime-local" 
+              value={startDateTime} 
+              onChange={(e) => setStartDateTime(e.target.value)}
+              style={{ width: '100%', padding: '8px' }}
+            />
+          </div>
+          <div>
+            <label>Delay Between Accounts (Mins)</label>
+            <input 
+              type="number" 
+              min="1" 
+              value={delayMinutes} 
+              onChange={(e) => setDelayMinutes(parseInt(e.target.value))}
+              style={{ width: '100%', padding: '8px' }}
+            />
+          </div>
+          <div>
+            <label>Target IPO ID (Optional)</label>
+            <input 
+              type="text" 
+              value={targetShareId} 
+              onChange={(e) => setTargetShareId(e.target.value)}
+              placeholder="Leave blank for auto-select"
+              style={{ width: '100%', padding: '8px' }}
+            />
+          </div>
+        </div>
       </div>
 
-      {error && <div className="alert alert-error">{error}</div>}
-      {success && <div className="alert alert-success">{success}</div>}
-
-      {stats && (
-        <div className="stats-grid">
-          <div className="stat-card">
-            <h3>Total Schedules</h3>
-            <div className="value">{stats.totalSchedules}</div>
-          </div>
-          <div className="stat-card">
-            <h3>Active Schedules</h3>
-            <div className="value">{stats.activeSchedules}</div>
-          </div>
-          <div className="stat-card">
-            <h3>Applied Today</h3>
-            <div className="value">{stats.totalAppliedToday}</div>
-          </div>
-          <div className="stat-card">
-            <h3>Active Jobs</h3>
-            <div className="value">{stats.activeJobs}</div>
-          </div>
+      {/* Client Selection */}
+      <div className="clients-card" style={{ background: '#fff', border: '1px solid #ddd', padding: '20px', borderRadius: '8px', marginBottom: '20px' }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '15px' }}>
+          <h3 style={{ margin: 0 }}>👥 Select Accounts ({selectedClients.length} selected)</h3>
+          <button onClick={selectAll} style={{ padding: '5px 10px', cursor: 'pointer' }}>
+            {selectedClients.length === clients.length ? 'Deselect All' : 'Select All'}
+          </button>
         </div>
-      )}
-
-      {showForm && (
-        <div className="form-container">
-          <h2>{editingId ? 'Edit Schedule' : 'Create New Schedule'}</h2>
-          <form onSubmit={handleSubmit}>
-            <div className="form-grid">
-              <div className="form-group">
-                <label htmlFor="clientId">Client *</label>
-                <select
-                  name="clientId"
-                  id="clientId"
-                  value={formData.clientId}
-                  onChange={handleFormChange}
-                  required
-                >
-                  <option value="">Select a client...</option>
-                  {clients.map((client) => (
-                    <option key={client._id} value={client._id}>
-                      {client.name} ({client.username})
-                    </option>
-                  ))}
-                </select>
-                {formData.clientId && (
-                  <button
-                    type="button"
-                    className="btn-add"
-                    onClick={() => testClient(formData.clientId)}
-                    disabled={testingClientId === formData.clientId}
-                  >
-                    {testingClientId === formData.clientId ? 'Testing...' : '🧪 Test Connection'}
-                  </button>
-                )}
-              </div>
-
-              <div className="form-group">
-                <label htmlFor="scheduleType">Schedule Type *</label>
-                <select
-                  name="scheduleType"
-                  id="scheduleType"
-                  value={formData.scheduleType}
-                  onChange={handleFormChange}
-                >
-                  <option value="hourly">Every N Hours</option>
-                  <option value="specific-time">Specific Times Daily</option>
-                  <option value="daily">Daily</option>
-                  <option value="time-range">Within Time Range</option>
-                  <option value="once">One-Time</option>
-                </select>
-              </div>
-
-              <div className="form-group">
-                <label htmlFor="maxSharesPerDay">Max Per Day *</label>
-                <input
-                  type="number"
-                  name="maxSharesPerDay"
-                  id="maxSharesPerDay"
-                  value={formData.maxSharesPerDay}
-                  onChange={handleFormChange}
-                  min="1"
-                  max="50"
+        
+        <div style={{ maxHeight: '300px', overflowY: 'auto', border: '1px solid #eee', borderRadius: '4px' }}>
+          {clients.length === 0 ? (
+            <p style={{ padding: '20px', textAlign: 'center', color: '#999' }}>No clients found. Please add clients first.</p>
+          ) : (
+            clients.map(client => (
+              <div key={client._id} style={{ 
+                padding: '10px 15px', 
+                borderBottom: '1px solid #f0f0f0', 
+                display: 'flex', 
+                alignItems: 'center',
+                background: selectedClients.includes(client._id) ? '#e6f7ff' : 'transparent'
+              }}>
+                <input 
+                  type="checkbox" 
+                  checked={selectedClients.includes(client._id)} 
+                  onChange={() => toggleClient(client._id)}
+                  style={{ marginRight: '15px', width: '18px', height: '18px' }}
                 />
-              </div>
-            </div>
-
-            {testResult && (
-              <div className={`test-result ${testResult.success ? 'success' : 'error'}`}>
-                <h4>{testResult.success ? '✅ Test Successful' : '❌ Test Failed'}</h4>
-                <div className="test-result-content">
-                  {testResult.success ? (
-                    <>
-                      <p><strong>User:</strong> {testResult.data.username}</p>
-                      <p><strong>DEMAT:</strong> {testResult.data.demat}</p>
-                      <p><strong>BOID:</strong> {testResult.data.boid}</p>
-                      <p><strong>Available IPOs:</strong> {testResult.data.applicableIssuesCount}</p>
-                    </>
-                  ) : (
-                    <p>{testResult.error}</p>
-                  )}
-                </div>
-              </div>
-            )}
-
-            <div className="conditional-fields">
-              {formData.scheduleType === 'hourly' && (
-                <div className="form-group">
-                  <label htmlFor="intervalHours">Interval (hours) *</label>
-                  <input
-                    type="number"
-                    name="intervalHours"
-                    id="intervalHours"
-                    value={formData.intervalHours}
-                    onChange={handleFormChange}
-                    min="1"
-                    max="24"
-                  />
-                </div>
-              )}
-
-              {(formData.scheduleType === 'specific-time' || formData.scheduleType === 'daily') && (
-                <div className="time-fields">
-                  <label>Application Times</label>
-                  {(formData.specificTimes || []).map((time, index) => (
-                    <div key={index} className="time-input-row">
-                      <input
-                        type="time"
-                        value={time}
-                        onChange={(e) => handleSpecificTimesChange(index, e.target.value)}
-                      />
-                      <button
-                        type="button"
-                        className="btn-remove"
-                        onClick={() => removeTimeField(index)}
-                      >
-                        Remove
-                      </button>
-                    </div>
-                  ))}
-                  <button type="button" className="btn-add" onClick={addTimeField}>
-                    + Add Time
-                  </button>
-                </div>
-              )}
-
-              {formData.scheduleType === 'time-range' && (
-                <div className="form-grid">
-                  <div className="form-group">
-                    <label htmlFor="timeRangeStart">Start Time</label>
-                    <input
-                      type="time"
-                      name="timeRangeStart"
-                      id="timeRangeStart"
-                      value={formData.timeRangeStart}
-                      onChange={handleFormChange}
-                    />
-                  </div>
-                  <div className="form-group">
-                    <label htmlFor="timeRangeEnd">End Time</label>
-                    <input
-                      type="time"
-                      name="timeRangeEnd"
-                      id="timeRangeEnd"
-                      value={formData.timeRangeEnd}
-                      onChange={handleFormChange}
-                    />
-                  </div>
-                  <div className="form-group">
-                    <label htmlFor="frequencyInRange">Frequency (minutes)</label>
-                    <input
-                      type="number"
-                      name="frequencyInRange"
-                      id="frequencyInRange"
-                      value={formData.frequencyInRange}
-                      onChange={handleFormChange}
-                      min="5"
-                      max="120"
-                    />
-                  </div>
-                </div>
-              )}
-            </div>
-
-            <div className="form-grid">
-              <div className="form-group">
-                <label htmlFor="targetCompanyShareId">Target IPO (optional)</label>
-                <input
-                  type="text"
-                  name="targetCompanyShareId"
-                  id="targetCompanyShareId"
-                  value={formData.targetCompanyShareId}
-                  onChange={handleFormChange}
-                  placeholder="Leave blank for auto-select"
-                />
-              </div>
-
-              <div className="form-group">
-                <label htmlFor="notes">Notes</label>
-                <input
-                  type="text"
-                  name="notes"
-                  id="notes"
-                  value={formData.notes}
-                  onChange={handleFormChange}
-                  placeholder="e.g., Primary account"
-                />
-              </div>
-            </div>
-
-            <div className="form-actions">
-              <button
-                type="button"
-                className="btn-cancel"
-                onClick={() => {
-                  setShowForm(false);
-                  setEditingId(null);
-                  setTestResult(null);
-                }}
-              >
-                Cancel
-              </button>
-              <button type="submit" className="btn-submit" disabled={loading}>
-                {loading ? 'Saving...' : editingId ? 'Update Schedule' : 'Create Schedule'}
-              </button>
-            </div>
-          </form>
-        </div>
-      )}
-
-      <div className="schedules-container">
-        <div className="schedules-header">
-          <h2>📅 Schedules ({schedules.length})</h2>
-        </div>
-        {schedules.length === 0 ? (
-          <div className="empty-state">
-            <p>No schedules created yet. Create your first automation schedule to get started!</p>
-          </div>
-        ) : (
-          schedules.map((schedule) => (
-            <div key={schedule._id} className="schedule-item">
-              <div className="schedule-info">
-                <div className="schedule-info-item">
-                  <label>Client</label>
-                  <div>{schedule.clientId?.name}</div>
-                </div>
-                <div className="schedule-info-item">
-                  <label>Type</label>
-                  <div>{getScheduleTypeLabel(schedule.scheduleType)}</div>
-                </div>
-                <div className="schedule-info-item">
-                  <label>Details</label>
-                  <div>{getScheduleDescription(schedule)}</div>
-                </div>
-                <div className="schedule-info-item">
-                  <label>Applied Today</label>
-                  <div>{schedule.appliedTodayCount}/{schedule.maxSharesPerDay}</div>
-                </div>
-                <div className="schedule-info-item">
-                  <label>Last Applied</label>
-                  <div>{schedule.lastApplied ? new Date(schedule.lastApplied).toLocaleTimeString() : 'Never'}</div>
-                </div>
-                <div className="schedule-info-item">
-                  <label>Status</label>
-                  <span className={`status-badge ${schedule.isActive ? 'status-active' : 'status-inactive'}`}>
-                    {schedule.isActive ? 'Active' : 'Inactive'}
+                <div>
+                  <strong>{client.name}</strong>
+                  <span style={{ color: '#666', marginLeft: '10px', fontSize: '0.9em' }}>
+                    ({client.username})
                   </span>
                 </div>
               </div>
-              <div className="schedule-actions">
-                <button className="btn-small btn-trigger" onClick={() => handleTrigger(schedule._id)} disabled={loading} type="button">
-                  ▶️ Trigger
-                </button>
-                <button className="btn-small btn-toggle" onClick={() => handleToggleActive(schedule)} type="button">
-                  {schedule.isActive ? '⏸ Pause' : '▶ Resume'}
-                </button>
-                <button className="btn-small btn-edit" onClick={() => handleEdit(schedule)} type="button">
-                  ✏️ Edit
-                </button>
-                <button className="btn-small btn-delete" onClick={() => handleDelete(schedule._id)} type="button">
-                  🗑️ Delete
-                </button>
-              </div>
-            </div>
-          ))
-        )}
+            ))
+          )}
+        </div>
       </div>
 
+      {/* Action Button */}
+      <button 
+        onClick={startAutomation} 
+        disabled={isRunning || selectedClients.length === 0}
+        style={{
+          width: '100%', padding: '15px', fontSize: '16px', fontWeight: 'bold',
+          background: isRunning ? '#ccc' : '#007bff', color: '#fff', border: 'none',
+          borderRadius: '8px', cursor: isRunning ? 'not-allowed' : 'pointer', marginBottom: '20px'
+        }}
+      >
+        {isRunning ? '⏳ Automation Running... (Keep this tab open)' : '🚀 Start Batch Apply'}
+      </button>
+
+      {/* Live Logs */}
       {logs.length > 0 && (
-        <div className="logs-container">
-          <div className="logs-header">
-            <h2>📋 Recent Activity</h2>
-          </div>
-          {logs.map((log, index) => (
-            <div key={index} className="log-item">
-              <div className="log-time">{new Date(log.timestamp).toLocaleString()}</div>
-              <div className={`log-type ${log.type.includes('SUCCESS') ? 'success' : log.type.includes('ERROR') ? 'error' : 'info'}`}>
-                {log.type}
-              </div>
-              <div className="log-message">{log.message}</div>
+        <div className="logs-card" style={{ background: '#1e1e1e', color: '#d4d4d4', padding: '20px', borderRadius: '8px', fontFamily: 'monospace', maxHeight: '400px', overflowY: 'auto' }}>
+          <h3 style={{ color: '#fff', marginTop: 0 }}>📋 Live Activity Log</h3>
+          {logs.map((log, i) => (
+            <div key={i} style={{ marginBottom: '8px', borderBottom: '1px solid #333', paddingBottom: '8px' }}>
+              <span style={{ color: '#858585', marginRight: '10px' }}>[{log.time}]</span>
+              <span style={{ 
+                color: log.type === 'success' ? '#4ec9b0' : log.type === 'error' ? '#f48771' : '#dcdcaa' 
+              }}>
+                {log.message}
+              </span>
             </div>
           ))}
         </div>
       )}
     </div>
   );
-};
-
-export default AutomationManager;
+}
