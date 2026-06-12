@@ -111,6 +111,7 @@ export default function ClientList() {
                                 <th style={{ padding: '12px', textAlign: 'left', fontWeight: '600', color: '#1f2937' }}>DP ID</th>
                                 <th style={{ padding: '12px', textAlign: 'left', fontWeight: '600', color: '#1f2937' }}>Shares</th>
                                 <th style={{ padding: '12px', textAlign: 'left', fontWeight: '600', color: '#1f2937' }}>CRN</th>
+                                <th style={{ padding: '12px', textAlign: 'left', fontWeight: '600', color: '#1f2937' }}>Created By</th>
                                 <th style={{ padding: '12px', textAlign: 'center', fontWeight: '600', color: '#1f2937' }}>Actions</th>
                             </tr>
                         </thead>

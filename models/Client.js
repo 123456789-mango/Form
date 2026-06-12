@@ -14,6 +14,7 @@ const clientSchema = new mongoose.Schema({
     demat: { type: String, default: null },
     boid: { type: String, default: null },
     loggedInName: { type: String, default: null },
+    createdBy: { type: mongoose.Schema.Types.ObjectId, ref: 'User', default: null },
 }, { timestamps: true });
 
 module.exports = mongoose.model('MeroshareClient', clientSchema);

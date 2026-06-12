@@ -15,6 +15,7 @@ const postSchema = new mongoose.Schema({
     url: { type: String },
     title: { type: String, default: '' },
   }],
+  createdBy: { type: mongoose.Schema.Types.ObjectId, ref: 'User', default: null },
 
 }, { timestamps: true });
 

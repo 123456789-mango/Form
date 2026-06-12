@@ -4,6 +4,7 @@ import '../styles/MetallicChic.css';
 
 export default function UserManagement() {
     const [users, setUsers] = useState([]);
+    const [roles, setRoles] = useState([]);
     const [loading, setLoading] = useState(true);
     const [showForm, setShowForm] = useState(false);
     const [editingId, setEditingId] = useState(null);
@@ -14,7 +15,20 @@ export default function UserManagement() {
 
     useEffect(() => {
         fetchUsers();
+        fetchRoles();
     }, []);
+
+    const fetchRoles = async () => {
+        try {
+            const token = localStorage.getItem('token');
+            const res = await axios.get(`${import.meta.env.VITE_API_URL}/api/roles`, {
+                headers: { Authorization: `Bearer ${token}` }
+            });
+            setRoles(res.data);
+        } catch (err) {
+            console.error('Failed to load roles:', err);
+        }
+    };
 
     const fetchUsers = async () => {
         try {
@@ -53,7 +67,7 @@ export default function UserManagement() {
             email: '',
             phone: '',
             department: '',
-            role: 'user',
+            role: roles.length > 0 ? roles[0].name : 'admin',
             bio: ''
         });
         setError('');
@@ -242,8 +256,12 @@ export default function UserManagement() {
                                 onChange={handleEditChange}
                                 className="mc-input"
                             >
-                                <option value="user">User</option>
-                                <option value="admin">Admin</option>
+                                <option value="">Select a role</option>
+                                {roles.map(role => (
+                                    <option key={role._id} value={role.name}>
+                                        {role.name}
+                                    </option>
+                                ))}
                             </select>
                         </div>
 
@@ -340,8 +358,11 @@ export default function UserManagement() {
                                                 className="mc-input"
                                                 style={{ fontSize: '12px' }}
                                             >
-                                                <option value="admin">Admin</option>
-                                                <option value="user">User</option>
+                                                {roles.map(role => (
+                                                    <option key={role._id} value={role.name}>
+                                                        {role.name}
+                                                    </option>
+                                                ))}
                                             </select>
                                         </td>
                                         <td style={{ padding: '12px', textAlign: 'center', display: 'flex', gap: '6px', justifyContent: 'center' }}>
