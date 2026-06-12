@@ -10,11 +10,26 @@ app.use(cors());
 app.use(express.json());
 
 let isConnected = false;
+let schedulerInitialized = false;
+
 const connectDB = async () => {
   if (isConnected) return;
   await mongoose.connect(process.env.MONGO_URI);
   isConnected = true;
   console.log('✅ MongoDB connected');
+};
+
+// Initialize automation scheduler
+const initializeScheduler = async () => {
+  if (schedulerInitialized) return;
+  try {
+    const { getScheduler } = require('../services/AutomationScheduler');
+    const scheduler = getScheduler();
+    await scheduler.initialize();
+    schedulerInitialized = true;
+  } catch (err) {
+    console.error('Failed to initialize scheduler:', err.message || err);
+  }
 };
 
 // Seed an admin user if none exists
@@ -43,6 +58,8 @@ app.use(async (req, res, next) => {
   await connectDB();
   // ensure admin seeded on first DB connection
   if (isConnected) await seedAdmin();
+  // Initialize scheduler on first DB connection
+  if (isConnected) await initializeScheduler();
   next();
 });
 
@@ -52,6 +69,7 @@ app.use('/api/auth', require('../routes/auth'));
 app.use('/api/users', require('../routes/users'));
 app.use('/api/roles', require('../routes/roles'));
 app.use('/api/clients', require('../routes/clients'));
+app.use('/api/automation', require('../routes/automation'));
 app.use('/api/dashboard', require('../routes/dashboard'));
 
 app.get('/', (req, res) => res.json({ message: 'Blog API running ✅' }));
