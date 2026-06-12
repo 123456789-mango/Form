@@ -2,9 +2,9 @@ import { useEffect, useState } from 'react';
 import ReactQuill from 'react-quill';
 import 'react-quill/dist/quill.snow.css';
 import { useNavigate, useParams } from 'react-router-dom';
-import { getPost, updatePost, uploadImage } from '../api/blog';
-import GalleryUpload from '../components/GalleryUpload';
-import VideoUpload from '../components/VideoUpload';
+import { getPost, updatePost, uploadImage } from '../../api/blog';
+import GalleryUpload from './GalleryUpload';
+import VideoUpload from './VideoUpload';
 
 export default function EditPost() {
     const { id } = useParams();
@@ -24,7 +24,7 @@ export default function EditPost() {
                 title: post.title,
                 tags: post.tags?.join(', ') || '',
                 author: post.author,
-                    category: post.category || 'General',
+                category: post.category || 'General',
             });
             setContent(post.content);
             setPreview(post.coverImage);
@@ -83,12 +83,12 @@ export default function EditPost() {
                 value={form.author}
                 onChange={e => setForm({ ...form, author: e.target.value })}
             />
-                <label style={styles.label}>Category</label>
-                <input
-                    style={styles.input}
-                    value={form.category}
-                    onChange={e => setForm({ ...form, category: e.target.value })}
-                />
+            <label style={styles.label}>Category</label>
+            <input
+                style={styles.input}
+                value={form.category}
+                onChange={e => setForm({ ...form, category: e.target.value })}
+            />
 
             <label style={styles.label}>Tags (comma separated)</label>
             <input

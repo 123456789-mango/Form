@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import axios from 'axios';
-import '../styles/MetallicChic.css';
+import '../../styles/MetallicChic.css';
 
 export default function RoleManagement() {
     const [roles, setRoles] = useState([]);

@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import axios from 'axios';
-import '../styles/MetallicChic.css';
+import '../../styles/MetallicChic.css';
 
 export default function Dashboard() {
     const [stats, setStats] = useState({

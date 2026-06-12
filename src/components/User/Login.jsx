@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
-import bg from '../assets/images/login.jpg';
-import '../styles/MetallicChic.css';
+import bg from '../../assets/images/login.jpg';
+import '../../styles/MetallicChic.css';
 
 const BASE_URL = import.meta.env.VITE_API_URL || '';
 

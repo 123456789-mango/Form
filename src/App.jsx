@@ -1,18 +1,19 @@
 import { useState, useEffect } from 'react';
 import { BrowserRouter, Route, Routes, Navigate, useLocation, Link, useNavigate } from 'react-router-dom';
-import CreatePost from './pages/CreatePost';
-import EditPost from './pages/EditPost';
-import PostList from './pages/PostList';
-import ClientList from './pages/ClientList';
-import UserProfile from './pages/UserProfile';
-import UserManagement from './pages/UserManagement';
-import RoleManagement from './pages/RoleManagement';
-import Login from './pages/Login';
-import Dashboard from './pages/Dashboard';
-import UserDashboard from './pages/UserDashboard';
+
 import { useSessionManagement } from './hooks/useSessionManagement';
 import './styles/MetallicChic.css';
 import Unauthorized from './components/unauthorized/Unauthorized';
+import Dashboard from './components/Dashboard/Dashboard';
+import UserDashboard from './components/Dashboard/UserDashboard';
+import PostList from './components/Post/PostList';
+import CreatePost from './components/Post/CreatePost';
+import EditPost from './components/Post/EditPost';
+import UserManagement from './components/User/UserManagement';
+import RoleManagement from './components/Role/RoleManagement';
+import ClientList from './components/MeroshareClient/ClientList';
+import UserProfile from './components/User/UserProfile';
+import Login from './components/User/Login';
 
 function Private({ children }) {
     const token = localStorage.getItem('token');
@@ -203,10 +204,10 @@ export default function App() {
                                         <span className="mc-sidebar-icon">📰</span>
                                         {sidebarExpanded && <span>All Posts</span>}
                                     </Link>
-                                    <Link to="/create" className={`mc-sidebar-item ${location.pathname === '/create' ? 'active' : ''}`}>
+                                    {/* <Link to="/create" className={`mc-sidebar-item ${location.pathname === '/create' ? 'active' : ''}`}>
                                         <span className="mc-sidebar-icon">✨</span>
                                         {sidebarExpanded && <span>Create Post</span>}
-                                    </Link>
+                                    </Link> */}
                                 </>
                             )}
 

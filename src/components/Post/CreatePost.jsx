@@ -2,10 +2,10 @@ import { useState } from 'react';
 import ReactQuill from 'react-quill';
 import 'react-quill/dist/quill.snow.css';
 import { useNavigate } from 'react-router-dom';
-import { createPost, uploadImage } from '../api/blog';
-import GalleryUpload from '../components/GalleryUpload';
-import VideoUpload from '../components/VideoUpload';
-import '../styles/MetallicChic.css';
+import { createPost, uploadImage } from '../../api/blog';
+import GalleryUpload from './GalleryUpload';
+import VideoUpload from './VideoUpload';
+import '../../styles/MetallicChic.css';
 
 export default function CreatePost() {
     const navigate = useNavigate();

@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { deletePost, getAllPosts } from '../api/blog';
-import '../styles/MetallicChic.css';
+import { deletePost, getAllPosts } from '../../api/blog';
+import '../../styles/MetallicChic.css';
 
 console.log('API KEY:', import.meta.env.VITE_API_KEY);
 
@@ -35,6 +35,7 @@ export default function PostList() {
     return (
         <div className="mc-page-container">
             <h2 className="mc-title" style={{ marginBottom: '24px' }}>All Posts ({posts.length})</h2>
+            <button onClick={() => navigate('/create')} className="mc-btn" style={{ marginBottom: '20px' }}>➕ Create New Post</button>
             {posts.length === 0 && <p>No posts yet.</p>}
 
             {posts.map(post => (

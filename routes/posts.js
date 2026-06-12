@@ -4,6 +4,7 @@ const User = require('../models/User');
 const auth = require('../middleware/auth');
 
 router.get('/', auth, async (req, res) => {
+  res.set('Cache-Control', 'no-store');
   try {
     const user = await User.findById(req.user.id);
 

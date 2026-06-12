@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import axios from 'axios';
-import ClientManagement from '../components/ClientManagement';
-import '../styles/MetallicChic.css';
+import ClientManagement from './ClientManagement';
+import '../../styles/MetallicChic.css';
 
 export default function ClientList() {
     const [clients, setClients] = useState([]);

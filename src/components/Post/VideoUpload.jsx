@@ -1,6 +1,6 @@
 import { useState } from 'react';
-import { uploadVideo } from '../api/blog';
-import '../styles/MetallicChic.css';
+import { uploadVideo } from '../../api/blog';
+import '../../styles/MetallicChic.css';
 
 export default function VideoUpload({ videos, setVideos }) {
     const [videoUrl, setVideoUrl] = useState('');

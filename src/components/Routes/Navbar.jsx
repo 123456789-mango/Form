@@ -1,5 +1,5 @@
 import { Link, useNavigate } from 'react-router-dom';
-import '../styles/MetallicChic.css';
+import '../../styles/MetallicChic.css';
 
 export default function Navbar() {
     const navigate = useNavigate();

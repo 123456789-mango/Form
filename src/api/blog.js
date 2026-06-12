@@ -19,7 +19,11 @@ const authHeaders = (isJson = true) => {
 };
 
 export const getAllPosts = async () => {
-    const res = await fetch(`${BASE_URL}/api/posts`, { headers: authHeaders(false) });
+    const res = await fetch(`${BASE_URL}/api/posts`, {
+        headers: authHeaders(false),
+        'Cache-Control': 'no-cache',
+        'Pragma': 'no-cache',
+    });
     return res.json();
 };
 

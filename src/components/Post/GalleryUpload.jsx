@@ -1,6 +1,6 @@
 import { useState } from 'react';
-import { uploadGallery } from '../api/blog';
-import '../styles/MetallicChic.css';
+import { uploadGallery } from '../../api/blog';
+import '../../styles/MetallicChic.css';
 
 export default function GalleryUpload({ gallery, setGallery }) {
     const [uploading, setUploading] = useState(false);
