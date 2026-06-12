@@ -2,7 +2,8 @@ import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import './AutomationManager.css';
 
-const AutomationManager = ({ userId }) => {
+// Removed unused 'userId' prop to fix Vite/Rolldown parser crash and ESLint warning
+const AutomationManager = () => {
   const [schedules, setSchedules] = useState([]);
   const [clients, setClients] = useState([]);
   const [stats, setStats] = useState(null);
@@ -377,26 +378,10 @@ const AutomationManager = ({ userId }) => {
                 <div className="test-result-content">
                   {testResult.success ? (
                     <>
-                      <p>
-                        <strong>User:</strong>
-                        {' '}
-                        {testResult.data.username}
-                      </p>
-                      <p>
-                        <strong>DEMAT:</strong>
-                        {' '}
-                        {testResult.data.demat}
-                      </p>
-                      <p>
-                        <strong>BOID:</strong>
-                        {' '}
-                        {testResult.data.boid}
-                      </p>
-                      <p>
-                        <strong>Available IPOs:</strong>
-                        {' '}
-                        {testResult.data.applicableIssuesCount}
-                      </p>
+                      <p><strong>User:</strong> {testResult.data.username}</p>
+                      <p><strong>DEMAT:</strong> {testResult.data.demat}</p>
+                      <p><strong>BOID:</strong> {testResult.data.boid}</p>
+                      <p><strong>Available IPOs:</strong> {testResult.data.applicableIssuesCount}</p>
                     </>
                   ) : (
                     <p>{testResult.error}</p>
@@ -556,17 +541,11 @@ const AutomationManager = ({ userId }) => {
                 </div>
                 <div className="schedule-info-item">
                   <label>Applied Today</label>
-                  <div>
-                    {schedule.appliedTodayCount}
-                    /
-                    {schedule.maxSharesPerDay}
-                  </div>
+                  <div>{schedule.appliedTodayCount}/{schedule.maxSharesPerDay}</div>
                 </div>
                 <div className="schedule-info-item">
                   <label>Last Applied</label>
-                  <div>
-                    {schedule.lastApplied ? new Date(schedule.lastApplied).toLocaleTimeString() : 'Never'}
-                  </div>
+                  <div>{schedule.lastApplied ? new Date(schedule.lastApplied).toLocaleTimeString() : 'Never'}</div>
                 </div>
                 <div className="schedule-info-item">
                   <label>Status</label>
@@ -576,33 +555,16 @@ const AutomationManager = ({ userId }) => {
                 </div>
               </div>
               <div className="schedule-actions">
-                <button
-                  className="btn-small btn-trigger"
-                  onClick={() => handleTrigger(schedule._id)}
-                  disabled={loading}
-                  type="button"
-                >
+                <button className="btn-small btn-trigger" onClick={() => handleTrigger(schedule._id)} disabled={loading} type="button">
                   ▶️ Trigger
                 </button>
-                <button
-                  className="btn-small btn-toggle"
-                  onClick={() => handleToggleActive(schedule)}
-                  type="button"
-                >
+                <button className="btn-small btn-toggle" onClick={() => handleToggleActive(schedule)} type="button">
                   {schedule.isActive ? '⏸ Pause' : '▶ Resume'}
                 </button>
-                <button
-                  className="btn-small btn-edit"
-                  onClick={() => handleEdit(schedule)}
-                  type="button"
-                >
+                <button className="btn-small btn-edit" onClick={() => handleEdit(schedule)} type="button">
                   ✏️ Edit
                 </button>
-                <button
-                  className="btn-small btn-delete"
-                  onClick={() => handleDelete(schedule._id)}
-                  type="button"
-                >
+                <button className="btn-small btn-delete" onClick={() => handleDelete(schedule._id)} type="button">
                   🗑️ Delete
                 </button>
               </div>
@@ -619,14 +581,7 @@ const AutomationManager = ({ userId }) => {
           {logs.map((log, index) => (
             <div key={index} className="log-item">
               <div className="log-time">{new Date(log.timestamp).toLocaleString()}</div>
-              <div
-                className={`log-type ${log.type.includes('SUCCESS')
-                    ? 'success'
-                    : log.type.includes('ERROR')
-                      ? 'error'
-                      : 'info'
-                  }`}
-              >
+              <div className={`log-type ${log.type.includes('SUCCESS') ? 'success' : log.type.includes('ERROR') ? 'error' : 'info'}`}>
                 {log.type}
               </div>
               <div className="log-message">{log.message}</div>
