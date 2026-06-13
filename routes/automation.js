@@ -390,7 +390,7 @@ router.post('/apply', auth, async (req, res) => {
       demat: client.demat,
       boid: client.boid,
     };
-
+    console.log('DEBUG client.demat:', client.demat, 'client.boid:', client.boid, 'typeof:', typeof client.demat);
     const result = await service.findAndApplyForShare(options);
 
     res.json({

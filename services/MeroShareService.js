@@ -231,6 +231,11 @@ class MeroShareService {
       }
       this.demat = this.demat || options.demat;
       this.boid = this.boid || options.boid;
+      console.log('DEBUG after fallback - this.demat:', this.demat, 'options.demat:', options.demat);
+
+      if (!this.demat) {
+        throw new Error('Could not determine demat number');
+      }
 
       if (!this.demat) {
         throw new Error('Could not determine demat number');
