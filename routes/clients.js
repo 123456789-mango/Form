@@ -45,22 +45,25 @@ router.get('/:id', auth, async (req, res) => {
 // CREATE a new client
 router.post('/', auth, async (req, res) => {
     try {
-        const { id, name, dpId, username, password, pin, crn, noOfShare } = req.body;
+        // ✅ REMOVED 'id' from destructuring - MongoDB handles _id automatically
+        const { name, dpId, username, password, pin, crn, demat, bankId, noOfShare } = req.body;
 
-        // Validate required fields
-        if (!name || !dpId || !username || !password || !pin || !crn) {
-            return res.status(400).json({ error: 'Missing required fields' });
+        // ✅ Added demat and bankId to validation (they're required in schema now)
+        if (!name || !dpId || !username || !password || !pin || !crn || !demat || !bankId) {
+            return res.status(400).json({ error: 'Missing required fields: name, dpId, username, password, pin, crn, demat, bankId' });
         }
 
         const client = new Client({
-            id,
+            // ✅ REMOVED 'id' field - no longer needed
             name,
             dpId,
             username,
             password,
             pin,
             crn,
-            noOfShare: noOfShare || 0,
+            demat,      // ✅ Added
+            bankId,     // ✅ Added
+            noOfShare: noOfShare || 10,
             createdBy: req.user.id,
         });
 
@@ -68,6 +71,7 @@ router.post('/', auth, async (req, res) => {
         await client.populate('createdBy', 'username displayName');
         res.status(201).json(client);
     } catch (err) {
+        console.error('Create client error:', err);
         res.status(400).json({ error: err.message });
     }
 });
@@ -85,7 +89,8 @@ router.put('/:id', auth, async (req, res) => {
             return res.status(403).json({ error: 'Not authorized to update this client' });
         }
 
-        const allowedFields = ['name', 'dpId', 'username', 'password', 'pin', 'crn', 'noOfShare', 'sessionId', 'demat', 'boid', 'loggedInName'];
+        // ✅ ADDED 'demat' and 'bankId' to allowedFields
+        const allowedFields = ['name', 'dpId', 'username', 'password', 'pin', 'crn', 'demat', 'bankId', 'noOfShare', 'sessionId', 'boid', 'loggedInName'];
         const updates = {};
 
         allowedFields.forEach(field => {
@@ -94,10 +99,20 @@ router.put('/:id', auth, async (req, res) => {
             }
         });
 
-        const updatedClient = await Client.findByIdAndUpdate(req.params.id, updates, { new: true, runValidators: true }).populate('createdBy', 'username displayName');
+        // ✅ Use findByIdAndUpdate with proper options
+        const updatedClient = await Client.findByIdAndUpdate(
+            req.params.id, 
+            { $set: updates },
+            { 
+                new: true,           // Return updated document
+                runValidators: true, // Run schema validation
+                context: 'query'     // Required for validators to work
+            }
+        ).populate('createdBy', 'username displayName');
 
         res.json(updatedClient);
     } catch (err) {
+        console.error('Update client error:', err);
         res.status(400).json({ error: err.message });
     }
 });
