@@ -365,51 +365,35 @@ router.post('/apply', auth, async (req, res) => {
 
   try {
     const client = await Client.findById(clientId);
-    console.log(client,'Client');
     if (!client) {
       return res.status(404).json({ error: 'Client not found' });
     }
 
-    // Authorization check — match pattern from other routes
     const user = await User.findById(req.user.id);
     if (user.role !== 'admin' && client.createdBy.toString() !== req.user.id) {
       return res.status(403).json({ error: 'Not authorized to use this client' });
     }
 
-    if (!client.username || !client.password || !client.dpId) {
-      return res.status(400).json({ error: 'Client missing required credentials (username, password, dpId)' });
+    if (!client.username || !client.password || !client.dpId || !client.pin) {
+      return res.status(400).json({ error: 'Client missing required credentials (username, password, dpId, pin)' });
     }
 
     service = new MeroShareService();
-
-    // MeroShare /auth expects { clientId, username, password } — clientId is the
-    // numeric broker/DP code (e.g. 174), NOT the Mongo _id and NOT the PIN.
     await service.login(client.username, client.password, client.dpId);
-
-    if (!service.sessionId) {
-      throw new Error('Login succeeded but no session was established');
-    }
-
-    // Fetch demat/account details now that we have a session
-    const ownDetails = await service.getOwnDetails();
-    service.demat = ownDetails?.demat || ownDetails?.dematNumber || service.demat;
-    service.boid = ownDetails?.boid || service.boid;
 
     const options = {
       targetCompanyShareId: targetShareId || undefined,
       crn: client.crn,
-      bankCode: client.bankCode,
-      noOfShare: client.noOfShare || 10,
-      transactionPIN: client.pin, // PIN used at apply step, not login
+      bankId: client.bankId, // numeric bank ID from getBanks(), e.g. 44
+      noOfShare: client.noOfShare,
+      transactionPIN: client.pin,
     };
 
     const result = await service.findAndApplyForShare(options);
 
     res.json({
       success: true,
-      message: result?.appliedFor
-        ? `Successfully applied for ${result.appliedFor}`
-        : 'IPO applied successfully',
+      message: `Successfully applied for ${result.appliedFor}`,
       details: result,
     });
   } catch (err) {

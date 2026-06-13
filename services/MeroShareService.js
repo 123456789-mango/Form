@@ -2,7 +2,6 @@ const axios = require('axios');
 
 const MERO_SHARE_BASE_URL = 'https://webbackend.cdsc.com.np/api/meroShare';
 
-// Configure axios instance with safe defaults
 const meroshareClient = axios.create({
   baseURL: MERO_SHARE_BASE_URL,
   timeout: 15000,
@@ -11,7 +10,6 @@ const meroshareClient = axios.create({
   },
 });
 
-// Add request interceptor for safe delays between requests
 let lastRequestTime = Date.now();
 meroshareClient.interceptors.request.use(async (config) => {
   const now = Date.now();
@@ -34,15 +32,21 @@ class MeroShareService {
     this.userName = null;
     this.demat = null;
     this.boid = null;
+    // Each instance gets its own axios config overrides so concurrent
+    // instances don't clobber each other's auth headers
+    this.authHeader = null;
   }
 
-  /**
-   * Login to MeroShare
-   * @param {string} username - MeroShare username
-   * @param {string} password - MeroShare password
-   * @param {string} pin - Transaction PIN
-   * @returns {Promise<Object>} Login response with session info
-   */
+  _authConfig(extraConfig = {}) {
+    return {
+      ...extraConfig,
+      headers: {
+        ...(extraConfig.headers || {}),
+        ...(this.authHeader ? { Authorization: this.authHeader } : {}),
+      },
+    };
+  }
+
   async login(username, password, clientId) {
     try {
       const response = await meroshareClient.post('/auth', {
@@ -51,14 +55,17 @@ class MeroShareService {
         password,
       });
 
-      // MeroShare returns statusCode 200 + message, but session info
-      // typically comes back via a response header, not response.data.data
       if (response.data && response.data.statusCode === 200) {
-        // Session ID is usually in the 'Authorization' response header
-        this.sessionId = response.headers['authorization'] || response.headers['Authorization'];
+        // MeroShare returns the session token in the Authorization response header
+        this.authHeader =
+          response.headers['authorization'] || response.headers['Authorization'];
+
+        if (!this.authHeader) {
+          throw new Error('Login response did not include an Authorization header');
+        }
+
+        this.sessionId = this.authHeader;
         this.userName = username;
-        this.demat = null; // fetch via getOwnDetails()
-        this.boid = null;
 
         return {
           success: true,
@@ -75,141 +82,122 @@ class MeroShareService {
     }
   }
 
-  /**
-   * Logout from MeroShare
-   * @returns {Promise<boolean>}
-   */
   async logout() {
     try {
-      if (!this.sessionId) {
-        console.warn('No session ID to logout');
+      if (!this.authHeader) {
+        console.warn('No session to logout');
         return true;
       }
 
-      await meroshareClient.post(`/auth/logout/?session_id=${this.sessionId}`);
+      await meroshareClient.post('/auth/logout/', {}, this._authConfig());
+      this.authHeader = null;
       this.sessionId = null;
       this.userName = null;
       return true;
     } catch (error) {
       console.error('Logout error:', error.message);
-      // Don't throw - always consider logout success to prevent state issues
       return true;
     }
   }
 
-  /**
-   * Get all banks
-   * @returns {Promise<Array>}
-   */
   async getBanks() {
     try {
-      const response = await meroshareClient.get('/bank');
-      return response.data?.data || [];
+      const response = await meroshareClient.get('/bank', this._authConfig());
+      return response.data?.data || response.data?.object || [];
     } catch (error) {
       throw new Error(`Failed to fetch banks: ${error.message}`);
     }
   }
 
-  /**
-   * Get account details for a bank
-   * @param {string} bankId - Bank ID
-   * @returns {Promise<Object>}
-   */
   async getAccountDetails(bankId) {
     try {
-      const response = await meroshareClient.get(`/bank/${bankId}`);
-      return response.data?.data || {};
+      const response = await meroshareClient.get(`/bank/${bankId}`, this._authConfig());
+      return response.data || [];
     } catch (error) {
       throw new Error(`Failed to fetch account details: ${error.message}`);
     }
   }
 
-  /**
-   * Get own details (client profile)
-   * @returns {Promise<Object>}
-   */
   async getOwnDetails() {
     try {
-      const response = await meroshareClient.get('/ownDetail', {
-        params: { session_id: this.sessionId },
-      });
-      return response.data?.data || {};
+      const response = await meroshareClient.get('/ownDetail', this._authConfig());
+      const data = response.data?.data || response.data?.object || response.data || {};
+      this.demat = data.demat || data.dematNumber || this.demat;
+      this.boid = data.boid || this.boid;
+      return data;
     } catch (error) {
       throw new Error(`Failed to fetch own details: ${error.message}`);
     }
   }
 
-  /**
-   * Get applicable IPOs/issues
-   * @returns {Promise<Array>}
-   */
   async getApplicableIssues() {
     try {
-      const response = await meroshareClient.get('/companyShare/applicableIssue', {
-        params: { session_id: this.sessionId },
-      });
-      return response.data?.data || [];
+      const response = await meroshareClient.post(
+        '/companyShare/applicableIssue/',
+        {
+          filterFieldParams: [
+            { key: 'companyIssue.companyISIN.script', alias: 'Scrip' },
+            { key: 'companyIssue.companyName', alias: 'Company Name' },
+          ],
+          filterDateParams: [
+            { key: 'minIssueOpenDate', condition: '', alias: '', value: '' },
+            { key: 'maxIssueCloseDate', condition: '', alias: '', value: '' },
+          ],
+          page: 1,
+          size: 10,
+          searchRoleViewConstants: 'VIEW_APPLICABLE_SHARE',
+          filterDateParams2: [],
+        },
+        this._authConfig()
+      );
+
+      return response.data?.object || [];
     } catch (error) {
       throw new Error(`Failed to fetch applicable issues: ${error.message}`);
     }
   }
 
   /**
-   * Check if user can apply for a specific share
-   * @param {string} companyShareId - Company share ID
-   * @param {string} demat - DEMAT account number
-   * @returns {Promise<Object>}
+   * Determine if an issue is currently open for application,
+   * derived from the applicableIssue response itself —
+   * avoids relying on an undocumented /active/:id endpoint.
    */
+  checkActiveFromIssue(issue) {
+    const now = new Date();
+    const openDate = issue.issueOpenDate ? new Date(issue.issueOpenDate) : null;
+    const closeDate = issue.issueCloseDate ? new Date(issue.issueCloseDate) : null;
+
+    const statusOk = issue.statusName === 'CREATE_APPROVE' || issue.statusName === 'APPROVE';
+    const withinWindow = (!openDate || now >= openDate) && (!closeDate || now <= closeDate);
+
+    return statusOk && withinWindow;
+  }
+
   async checkCanApply(companyShareId, demat) {
     try {
       const response = await meroshareClient.get(
         `/applicantForm/customerType/${companyShareId}/${demat}`,
-        {
-          params: { session_id: this.sessionId },
-        }
+        this._authConfig()
       );
-      return response.data?.data || {};
+      const data = response.data?.data || response.data?.object || response.data || {};
+      return { canApply: true, eligible: true, ...data };
     } catch (error) {
-      // Not an error if user can't apply - just return false
-      return { canApply: false, reason: error.message };
+      return { canApply: false, reason: error.response?.data?.message || error.message };
     }
   }
 
-  /**
-   * Check if IPO is active/valid
-   * @param {string} companyShareId - Company share ID
-   * @returns {Promise<boolean>}
-   */
-  async checkActiveIPO(companyShareId) {
-    try {
-      const response = await meroshareClient.get(`/active/${companyShareId}`, {
-        params: { session_id: this.sessionId },
-      });
-      const result = response.data?.data;
-      return result?.isActive === true || result?.active === true;
-    } catch (error) {
-      return false;
-    }
-  }
-
-  /**
-   * Apply for shares
-   * @param {Object} applicationData - Application form data
-   * @returns {Promise<Object>}
-   */
   async applyForShare(applicationData) {
     try {
-      const payload = {
-        ...applicationData,
-        session_id: this.sessionId,
-      };
+      const response = await meroshareClient.post(
+        '/applicantForm/share/apply',
+        applicationData,
+        this._authConfig()
+      );
 
-      const response = await meroshareClient.post('/applicantForm/share/apply', payload);
-
-      if (response.data?.data) {
+      if (response.data) {
         return {
           success: true,
-          data: response.data.data,
+          data: response.data,
         };
       }
 
@@ -220,63 +208,65 @@ class MeroShareService {
     }
   }
 
-  /**
-   * Find and apply for optimal share based on strategy
-   * Automatically selects the best IPO and applies
-   * @param {Object} options - Options for application
-   * @returns {Promise<Object>}
-   */
   async findAndApplyForShare(options = {}) {
     try {
-      // 1. Get applicable issues
       const issues = await this.getApplicableIssues();
 
       if (!issues || issues.length === 0) {
         throw new Error('No applicable issues available');
       }
 
-      // 2. Filter for target company if specified
       let targetIssue = issues[0];
       if (options.targetCompanyShareId) {
         targetIssue = issues.find(
-          (issue) => issue.id === options.targetCompanyShareId || issue.companyShareId === options.targetCompanyShareId
+          (issue) => String(issue.companyShareId) === String(options.targetCompanyShareId)
         );
         if (!targetIssue) {
           throw new Error(`Target company share not found: ${options.targetCompanyShareId}`);
         }
-      } else {
-        // Select issue with best chances (highest available quantity, most recent)
-        targetIssue = issues.sort((a, b) => {
-          const aQty = a.totalShares || a.totalShare || 0;
-          const bQty = b.totalShares || b.totalShare || 0;
-          return bQty - aQty;
-        })[0];
       }
 
-      // 3. Check if active
-      const isActive = await this.checkActiveIPO(targetIssue.id || targetIssue.companyShareId);
+      if (!this.demat || !this.boid) {
+        await this.getOwnDetails();
+      }
+      if (!this.demat) {
+        throw new Error('Could not determine demat number');
+      }
+
+      const isActive = this.checkActiveFromIssue(targetIssue);
       if (!isActive) {
         throw new Error(`IPO not active: ${targetIssue.companyName}`);
       }
 
-      // 4. Check eligibility
-      const canApply = await this.checkCanApply(targetIssue.id || targetIssue.companyShareId, this.demat);
-      if (!canApply.canApply && !canApply.eligible) {
+      const canApply = await this.checkCanApply(targetIssue.companyShareId, this.demat);
+      if (!canApply.canApply) {
         throw new Error(`Not eligible for: ${targetIssue.companyName}`);
       }
 
-      // 5. Build application data
+      // Fetch bank account details — required for accountNumber, customerId, etc.
+      if (!options.bankId) {
+        throw new Error('bankId is required to apply');
+      }
+      const accounts = await this.getAccountDetails(options.bankId);
+      const account = Array.isArray(accounts) ? accounts[0] : accounts;
+      if (!account || !account.accountNumber) {
+        throw new Error('Could not fetch bank account details for the given bankId');
+      }
+
       const applicationData = {
-        companyShareId: targetIssue.id || targetIssue.companyShareId,
-        companyName: targetIssue.companyName,
         demat: this.demat,
-        crn: options.crn,
-        noOfShare: options.noOfShare || 1,
-        bankCode: options.bankCode,
-        ...options.customData,
+        boid: this.boid,
+        accountNumber: account.accountNumber,
+        customerId: account.id,
+        accountBranchId: account.accountBranchId,
+        accountTypeId: account.accountTypeId,
+        appliedKitta: String(options.noOfShare || 10),
+        bankId: String(options.bankId),
+        companyShareId: String(targetIssue.companyShareId),
+        crnNumber: options.crn,
+        transactionPIN: String(options.transactionPIN),
       };
 
-      // 6. Apply
       const result = await this.applyForShare(applicationData);
       return {
         success: true,
@@ -287,19 +277,10 @@ class MeroShareService {
       throw new Error(`Failed to find and apply: ${error.message}`);
     }
   }
-
-  /**
-   * Check if safe to apply (rate limiting check)
-   * @returns {Promise<boolean>}
-   */
   isSessionValid() {
-    return this.sessionId && this.demat;
+    return Boolean(this.authHeader && this.demat);
   }
 
-  /**
-   * Get current session info
-   * @returns {Object}
-   */
   getSessionInfo() {
     return {
       sessionId: this.sessionId,
@@ -310,6 +291,5 @@ class MeroShareService {
     };
   }
 }
-
 
 module.exports = MeroShareService;
