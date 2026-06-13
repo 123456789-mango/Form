@@ -188,12 +188,12 @@ class MeroShareService {
 
   async applyForShare(applicationData) {
     try {
+      console.log('Submitting application:', JSON.stringify(applicationData));
       const response = await meroshareClient.post(
         '/applicantForm/share/apply',
         applicationData,
         this._authConfig()
       );
-
       if (response.data) {
         return {
           success: true,
@@ -229,8 +229,14 @@ class MeroShareService {
       if (!this.demat || !this.boid) {
         await this.getOwnDetails();
       }
+      this.demat = this.demat || options.demat;
+      this.boid = this.boid || options.boid;
+
       if (!this.demat) {
         throw new Error('Could not determine demat number');
+      }
+      if (!this.boid) {
+        throw new Error('Could not determine boid');
       }
 
       const isActive = this.checkActiveFromIssue(targetIssue);

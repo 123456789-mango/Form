@@ -384,9 +384,11 @@ router.post('/apply', auth, async (req, res) => {
     const options = {
       targetCompanyShareId: targetShareId || undefined,
       crn: client.crn,
-      bankId: client.bankId, // numeric bank ID from getBanks(), e.g. 44
+      bankId: client.bankId,
       noOfShare: client.noOfShare,
       transactionPIN: client.pin,
+      demat: client.demat,
+      boid: client.boid,
     };
 
     const result = await service.findAndApplyForShare(options);
