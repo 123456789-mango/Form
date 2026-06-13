@@ -359,13 +359,13 @@ router.delete('/schedule/:id', auth, async (req, res) => {
     res.status(500).json({ error: error.message });
   }
 });
-
 router.post('/apply', auth, async (req, res) => {
   const { clientId, targetShareId } = req.body;
   let service = null;
 
   try {
     const client = await Client.findById(clientId);
+    console.log(client,'Client');
     if (!client) {
       return res.status(404).json({ error: 'Client not found' });
     }
@@ -376,18 +376,31 @@ router.post('/apply', auth, async (req, res) => {
       return res.status(403).json({ error: 'Not authorized to use this client' });
     }
 
-    if (!client.username || !client.password || !client.pin) {
-      return res.status(400).json({ error: 'Client missing required credentials' });
+    if (!client.username || !client.password || !client.dpId) {
+      return res.status(400).json({ error: 'Client missing required credentials (username, password, dpId)' });
     }
 
     service = new MeroShareService();
-    await service.login(client.username, client.password, client.pin);
+
+    // MeroShare /auth expects { clientId, username, password } — clientId is the
+    // numeric broker/DP code (e.g. 174), NOT the Mongo _id and NOT the PIN.
+    await service.login(client.username, client.password, client.dpId);
+
+    if (!service.sessionId) {
+      throw new Error('Login succeeded but no session was established');
+    }
+
+    // Fetch demat/account details now that we have a session
+    const ownDetails = await service.getOwnDetails();
+    service.demat = ownDetails?.demat || ownDetails?.dematNumber || service.demat;
+    service.boid = ownDetails?.boid || service.boid;
 
     const options = {
       targetCompanyShareId: targetShareId || undefined,
       crn: client.crn,
       bankCode: client.bankCode,
       noOfShare: client.noOfShare || 10,
+      transactionPIN: client.pin, // PIN used at apply step, not login
     };
 
     const result = await service.findAndApplyForShare(options);

@@ -43,32 +43,32 @@ class MeroShareService {
    * @param {string} pin - Transaction PIN
    * @returns {Promise<Object>} Login response with session info
    */
-  async login(username, password, pin) {
+  async login(username, password, clientId) {
     try {
       const response = await meroshareClient.post('/auth', {
+        clientId,
         username,
         password,
-        pin,
       });
 
-      if (response.data && response.data.data) {
-        const data = response.data.data;
-        this.sessionId = data.sessionId || data.session_id;
-        this.userName = data.username || data.user_name || username;
-        this.demat = data.demat;
-        this.boid = data.boid;
+      // MeroShare returns statusCode 200 + message, but session info
+      // typically comes back via a response header, not response.data.data
+      if (response.data && response.data.statusCode === 200) {
+        // Session ID is usually in the 'Authorization' response header
+        this.sessionId = response.headers['authorization'] || response.headers['Authorization'];
+        this.userName = username;
+        this.demat = null; // fetch via getOwnDetails()
+        this.boid = null;
 
         return {
           success: true,
-          data,
+          data: response.data,
           sessionId: this.sessionId,
           userName: this.userName,
-          demat: this.demat,
-          boid: this.boid,
         };
       }
 
-      throw new Error('Invalid login response');
+      throw new Error(response.data?.message || 'Invalid login response');
     } catch (error) {
       const errorMsg = error.response?.data?.message || error.message;
       throw new Error(`Login failed: ${errorMsg}`);
