@@ -9,9 +9,9 @@ const clientSchema = new mongoose.Schema({
     pin: { type: String, required: true }, // transaction PIN
     crn: { type: String, required: true },
     noOfShare: { type: Number, default: 0 },
-    // populated after a successful login
     sessionId: { type: String, default: null },
     demat: { type: String, default: null },
+    bankId: { type: String, required: true },
     boid: { type: String, default: null },
     loggedInName: { type: String, default: null },
     createdBy: { type: mongoose.Schema.Types.ObjectId, ref: 'User', default: null },

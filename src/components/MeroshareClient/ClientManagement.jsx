@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react'; // ✅ Added React to imports
+import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 
 export default function ClientManagement({ clientId, onSuccess, onCancel }) {
@@ -9,8 +9,8 @@ export default function ClientManagement({ clientId, onSuccess, onCancel }) {
         password: '',
         pin: '',
         crn: '',
-        demat: '', 
-        bankCode: '',
+        demat: '',
+        bankId: '', // ✅ Changed from bankCode to bankId
         noOfShare: 10,
     });
     const [loading, setLoading] = useState(false);
@@ -35,8 +35,8 @@ export default function ClientManagement({ clientId, onSuccess, onCancel }) {
                 password: res.data.password || '',
                 pin: res.data.pin || '',
                 crn: res.data.crn || '',
-                demat: res.data.demat || '', 
-                bankCode: res.data.bankCode || '',
+                demat: res.data.demat || '',
+                bankId: res.data.bankId || '', // ✅ Changed from bankCode
                 noOfShare: res.data.noOfShare || 10,
             });
         } catch (err) {
@@ -89,7 +89,6 @@ export default function ClientManagement({ clientId, onSuccess, onCancel }) {
 
             {error && <div style={{ color: '#dc2626', padding: '12px', marginBottom: '16px', backgroundColor: '#fee2e2', borderRadius: '6px' }}>{error}</div>}
 
-            {/* ✅ ADDED THE FORM TAG HERE TO FIX THE WARNING */}
             <form onSubmit={handleSubmit}>
                 <label className="mc-label">Display Name *</label>
                 <input
@@ -179,32 +178,29 @@ export default function ClientManagement({ clientId, onSuccess, onCancel }) {
                     required
                 />
 
-                <div className="mc-header-row">
-                    <div style={{ flex: 1, marginRight: '12px' }}>
-                        <label className="mc-label" style={{ marginTop: '0' }}>Bank Code</label>
-                        <input
-                            type="text"
-                            name="bankCode"
-                            value={form.bankCode}
-                            onChange={handleChange}
-                            className="mc-input"
-                            placeholder="e.g., 030 (for Nabil)"
-                        />
-                    </div>
-                    <div style={{ flex: 1, marginLeft: '12px' }}>
-                        <label className="mc-label" style={{ marginTop: '0' }}>Number of Shares</label>
-                        <input
-                            type="number"
-                            name="noOfShare"
-                            value={form.noOfShare}
-                            onChange={handleChange}
-                            className="mc-input"
-                            placeholder="10"
-                            min="1"
-                            max="100"
-                        />
-                    </div>
-                </div>
+                {/* ✅ CHANGED: Bank ID instead of Bank Code */}
+                <label className="mc-label">Bank ID *</label>
+                <input
+                    type="text"
+                    name="bankId"
+                    value={form.bankId}
+                    onChange={handleChange}
+                    className="mc-input"
+                    placeholder="e.g., 44 (for NIC ASIA)"
+                    required
+                />
+
+                <label className="mc-label">Number of Shares</label>
+                <input
+                    type="number"
+                    name="noOfShare"
+                    value={form.noOfShare}
+                    onChange={handleChange}
+                    className="mc-input"
+                    placeholder="10"
+                    min="1"
+                    max="100"
+                />
 
                 <div style={{ display: 'flex', gap: '12px', marginTop: '24px' }}>
                     <button type="submit" disabled={loading} className="mc-btn-primary">
@@ -216,7 +212,7 @@ export default function ClientManagement({ clientId, onSuccess, onCancel }) {
                         </button>
                     )}
                 </div>
-            </form> {/* ✅ CLOSED THE FORM TAG HERE */}
+            </form>
         </div>
     );
 }
