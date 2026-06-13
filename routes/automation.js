@@ -388,7 +388,8 @@ router.post('/apply', auth, async (req, res) => {
       noOfShare: client.noOfShare,
       transactionPIN: client.pin,
       demat: client.demat,
-      boid: client.boid,
+      boid: client.username,
+      username: client.username,
     };
     console.log('DEBUG client.demat:', client.demat, 'client.boid:', client.boid, 'typeof:', typeof client.demat);
     const result = await service.findAndApplyForShare(options);
