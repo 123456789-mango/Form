@@ -1,9 +1,9 @@
-import { useEffect, useState } from 'react';
+import React, { useState, useEffect } from 'react';
+
 import { useNavigate } from 'react-router-dom';
 import { deletePost, getAllPosts } from '../../api/blog';
 import '../../styles/MetallicChic.css';
 
-console.log('API KEY:', import.meta.env.VITE_API_KEY);
 
 const getEmbedUrl = (url) => {
     const yt = url.match(/(?:youtube\.com\/watch\?v=|youtu\.be\/)([^&\n?#]+)/);
