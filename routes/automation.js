@@ -360,53 +360,51 @@ router.delete('/schedule/:id', auth, async (req, res) => {
   }
 });
 
-router.post('/apply', async (req, res) => {
+router.post('/apply', auth, async (req, res) => {
   const { clientId, targetShareId } = req.body;
   let service = null;
 
   try {
-    // 1. Fetch client details from Database
     const client = await Client.findById(clientId);
     if (!client) {
       return res.status(404).json({ error: 'Client not found' });
     }
 
-    // 2. Initialize MeroShare Service
-    service = new MeroShareService();
+    // Authorization check — match pattern from other routes
+    const user = await User.findById(req.user.id);
+    if (user.role !== 'admin' && client.createdBy.toString() !== req.user.id) {
+      return res.status(403).json({ error: 'Not authorized to use this client' });
+    }
 
-    // 3. Login to MeroShare
-    // ⚠️ Ensure these field names (username, password, pin) match your Client model schema!
+    if (!client.username || !client.password || !client.pin) {
+      return res.status(400).json({ error: 'Client missing required credentials' });
+    }
+
+    service = new MeroShareService();
     await service.login(client.username, client.password, client.pin);
-    
-    // 4. Apply for the IPO
-    // findAndApplyForShare requires options like crn, bankCode, noOfShare
+
     const options = {
-      targetCompanyShareId: targetShareId || undefined, // If empty, it auto-selects the best IPO
-      crn: client.crn, 
-      bankCode: client.bankCode, // ⚠️ Ensure your Client model has a bankCode field
-      noOfShare: client.noOfShare || 10, // Default to 10 shares if not specified in DB
+      targetCompanyShareId: targetShareId || undefined,
+      crn: client.crn,
+      bankCode: client.bankCode,
+      noOfShare: client.noOfShare || 10,
     };
 
-    const result = await service.findAndApplyForShare(options); 
-    
-    // 5. Send success response back to frontend
-    res.json({ 
-      success: true, 
-      message: result?.appliedFor 
-        ? `Successfully applied for ${result.appliedFor}` 
-        : 'IPO applied successfully',
-      details: result 
-    });
+    const result = await service.findAndApplyForShare(options);
 
+    res.json({
+      success: true,
+      message: result?.appliedFor
+        ? `Successfully applied for ${result.appliedFor}`
+        : 'IPO applied successfully',
+      details: result,
+    });
   } catch (err) {
     console.error('Apply error:', err);
-    res.status(500).json({ 
-      error: err.message || 'Failed to apply for IPO' 
-    });
+    res.status(500).json({ error: err.message || 'Failed to apply for IPO' });
   } finally {
-    // 6. ALWAYS logout to clean up the session, even if an error occurred during apply
     if (service) {
-      await service.logout().catch(logoutErr => {
+      await service.logout().catch((logoutErr) => {
         console.error('Logout cleanup failed:', logoutErr.message);
       });
     }
