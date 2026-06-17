@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
+import { Box } from '@mui/material';
 import { useSessionManagement } from '../../hooks/useSessionManagement';
-import '../../styles/MetallicChic.css';
 import Header from './Header';
 import Sidebar from './Sidebar';
 import AppRoutes from './AppRoutes';
@@ -30,6 +30,7 @@ export default function Layout() {
     const { stopSession } = useSessionManagement(() => {
         navigate('/login?reason=sessionExpired');
     });
+
     useEffect(() => {
         setProfileDropdownOpen(false);
     }, [location.pathname]);
@@ -51,7 +52,16 @@ export default function Layout() {
     };
 
     return (
-        <div className="mc-admin-shell">
+        <Box
+            sx={{
+                display: 'flex',
+                flexDirection: 'column',
+                minHeight: '100vh',
+                bgcolor: '#ffffff',
+                overflowX: 'hidden'
+            }}
+        >
+            {/* Header Layout Component */}
             <Header
                 sidebarExpanded={sidebarExpanded}
                 setSidebarExpanded={setSidebarExpanded}
@@ -62,16 +72,29 @@ export default function Layout() {
                 handleLogout={handleLogout}
                 handleProfileClick={handleProfileClick}
             />
-            <div className="mc-layout-body">
+
+            {/* Main Application Body Split Frame */}
+            <Box sx={{ display: 'flex', flex: 1, position: 'relative' }}>
                 <Sidebar
                     sidebarExpanded={sidebarExpanded}
                     isAdmin={isAdmin}
                     currentPath={location.pathname}
                 />
-                <main className="mc-main-content">
+
+                <Box
+                    component="main"
+                    sx={{
+                        flexGrow: 1,
+                        p: { xs: 2.5, sm: 4 },
+                        bgcolor: 'rgba(247, 248, 240, 0.4)', // Soft tint backdrop behind views
+                        minHeight: 'calc(100vh - 64px)',
+                        boxSizing: 'border-box',
+                        overflowY: 'auto'
+                    }}
+                >
                     <AppRoutes isAdmin={isAdmin} />
-                </main>
-            </div>
-        </div>
+                </Box>
+            </Box>
+        </Box>
     );
 }

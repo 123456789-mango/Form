@@ -1,5 +1,6 @@
 import React from 'react';
 import { Routes, Route, Navigate } from 'react-router-dom';
+import { Box } from '@mui/material';
 import Unauthorized from '../unauthorized/Unauthorized';
 import Dashboard from '../Dashboard/Dashboard';
 import UserDashboard from '../Dashboard/UserDashboard';
@@ -14,35 +15,39 @@ import AutomationManager from '../MeroshareClient/AutomationManager';
 
 export default function AppRoutes({ isAdmin }) {
     return (
-        <Routes>
-            <Route path="/" element={isAdmin ? <Dashboard /> : <UserDashboard />} />
+        <Box sx={{ width: '100%', minHeight: '100%' }}>
+            <Routes>
+                {/* Dynamic Landing Dashboard based on Privilege */}
+                <Route path="/" element={isAdmin ? <Dashboard /> : <UserDashboard />} />
 
-            {isAdmin && (
-                <>
-                    <Route path="/posts" element={<PostList />} />
-                    <Route path="/create" element={<CreatePost />} />
-                    <Route path="/edit/:id" element={<EditPost />} />
-                    <Route path="/users" element={<UserManagement />} />
-                    <Route path="/roles" element={<RoleManagement />} />
-                    <Route path="/automation" element={<AutomationManager />} />
-                </>
-            )}
+                {/* Secure Administrator Execution Paths */}
+                {isAdmin ? (
+                    <>
+                        <Route path="/posts" element={<PostList />} />
+                        <Route path="/create" element={<CreatePost />} />
+                        <Route path="/edit/:id" element={<EditPost />} />
+                        <Route path="/users" element={<UserManagement />} />
+                        <Route path="/roles" element={<RoleManagement />} />
+                        <Route path="/automation" element={<AutomationManager />} />
+                    </>
+                ) : (
+                    <>
+                        <Route path="/posts" element={<Unauthorized />} />
+                        <Route path="/create" element={<Unauthorized />} />
+                        <Route path="/edit/:id" element={<Unauthorized />} />
+                        <Route path="/users" element={<Unauthorized />} />
+                        <Route path="/roles" element={<Unauthorized />} />
+                        <Route path="/automation" element={<Unauthorized />} />
+                    </>
+                )}
 
-            <Route path="/clients" element={<ClientList />} />
-            <Route path="/profile" element={<UserProfile />} />
+                {/* Common Authenticated Views */}
+                <Route path="/clients" element={<ClientList />} />
+                <Route path="/profile" element={<UserProfile />} />
 
-            {!isAdmin && (
-                <>
-                    <Route path="/posts" element={<Unauthorized />} />
-                    <Route path="/create" element={<Unauthorized />} />
-                    <Route path="/edit/:id" element={<Unauthorized />} />
-                    <Route path="/users" element={<Unauthorized />} />
-                    <Route path="/roles" element={<Unauthorized />} />
-                    <Route path="/automation" element={<Unauthorized />} />
-                </>
-            )}
-
-            <Route path="*" element={<Navigate to="/" replace />} />
-        </Routes>
+                {/* Fallback Redirection */}
+                <Route path="*" element={<Navigate to="/" replace />} />
+            </Routes>
+        </Box>
     );
 }
