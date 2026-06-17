@@ -1,97 +1,85 @@
 import { useEffect, useRef, useCallback } from 'react';
 import axios from 'axios';
 
-const INACTIVITY_TIME = 15 * 60 * 1000; // 15 minutes
-const REFRESH_THRESHOLD = 5 * 60 * 1000; // 5 minutes before expiry
+const INACTIVITY_TIME = 15 * 60 * 1000;   // 15 minutes idle -> logout
+const REFRESH_INTERVAL = 55 * 60 * 1000;  // refresh before a 1-hour token expiry
 
 export function useSessionManagement(onLogout) {
     const inactivityTimerRef = useRef(null);
     const refreshTimerRef = useRef(null);
+    const onLogoutRef = useRef(onLogout);
+    const activeRef = useRef(true); // flips false on any logout, guards stale async work
 
-    // Reset inactivity timer
-    const resetInactivityTimer = useCallback(() => {
-        if (inactivityTimerRef.current) {
-            clearTimeout(inactivityTimerRef.current);
-        }
+    useEffect(() => { onLogoutRef.current = onLogout; }, [onLogout]);
 
-        inactivityTimerRef.current = setTimeout(() => {
-            handleInactivityLogout();
-        }, INACTIVITY_TIME);
+    const clearTimers = useCallback(() => {
+        clearTimeout(inactivityTimerRef.current);
+        clearTimeout(refreshTimerRef.current);
     }, []);
 
-    // Handle inactivity logout
+    // Exposed so manual logout can neutralize timers + in-flight refreshes too
+    const stopSession = useCallback(() => {
+        activeRef.current = false;
+        clearTimers();
+    }, [clearTimers]);
+
     const handleInactivityLogout = useCallback(() => {
+        if (!activeRef.current) return;
+        stopSession();
         localStorage.removeItem('token');
         localStorage.removeItem('refreshToken');
-        if (onLogout) onLogout();
+        localStorage.removeItem('user');
+        onLogoutRef.current?.();
         window.location.href = '/login?reason=inactive';
-    }, [onLogout]);
+    }, [stopSession]);
 
-    // Refresh access token
+    const resetInactivityTimer = useCallback(() => {
+        if (!activeRef.current) return;
+        clearTimeout(inactivityTimerRef.current);
+        inactivityTimerRef.current = setTimeout(handleInactivityLogout, INACTIVITY_TIME);
+    }, [handleInactivityLogout]);
+
     const refreshAccessToken = useCallback(async () => {
+        if (!activeRef.current) return;
         try {
             const refreshToken = localStorage.getItem('refreshToken');
-            if (!refreshToken) {
-                handleInactivityLogout();
-                return;
-            }
+            if (!refreshToken) return handleInactivityLogout();
 
             const res = await axios.post(
                 `${import.meta.env.VITE_API_URL}/api/auth/refresh`,
                 { refreshToken }
             );
 
+            if (!activeRef.current) return; // logged out while this was in flight
             localStorage.setItem('token', res.data.accessToken);
             localStorage.setItem('refreshToken', res.data.refreshToken);
-            resetInactivityTimer();
-
-            // Schedule next refresh
             scheduleTokenRefresh();
         } catch (err) {
-            handleInactivityLogout();
+            if (activeRef.current) handleInactivityLogout();
         }
-    }, [resetInactivityTimer, handleInactivityLogout]);
+    }, [handleInactivityLogout]);
 
-    // Schedule token refresh
     const scheduleTokenRefresh = useCallback(() => {
-        if (refreshTimerRef.current) {
-            clearTimeout(refreshTimerRef.current);
-        }
-
-        // Refresh token every 55 minutes (before 1-hour expiry)
-        refreshTimerRef.current = setTimeout(() => {
-            refreshAccessToken();
-        }, 55 * 60 * 1000);
+        if (!activeRef.current) return;
+        clearTimeout(refreshTimerRef.current);
+        refreshTimerRef.current = setTimeout(refreshAccessToken, REFRESH_INTERVAL);
     }, [refreshAccessToken]);
 
-    // Track user activity
     useEffect(() => {
+        activeRef.current = true;
         const events = ['mousedown', 'keydown', 'scroll', 'touchstart', 'click'];
+        const handleActivity = () => resetInactivityTimer();
+        events.forEach(e => document.addEventListener(e, handleActivity, true));
 
-        const handleActivity = () => {
-            resetInactivityTimer();
-        };
-
-        events.forEach(event => {
-            document.addEventListener(event, handleActivity, true);
-        });
-
-        // Initial timer setup
         resetInactivityTimer();
         scheduleTokenRefresh();
 
-        // Cleanup
         return () => {
-            events.forEach(event => {
-                document.removeEventListener(event, handleActivity, true);
-            });
-            if (inactivityTimerRef.current) clearTimeout(inactivityTimerRef.current);
-            if (refreshTimerRef.current) clearTimeout(refreshTimerRef.current);
+            events.forEach(e => document.removeEventListener(e, handleActivity, true));
+            clearTimers();
         };
-    }, [resetInactivityTimer, scheduleTokenRefresh]);
 
-    return {
-        refreshAccessToken,
-        handleInactivityLogout
-    };
+    }, []);
+
+    return { refreshAccessToken, handleInactivityLogout, stopSession };
 }

@@ -1,8 +1,31 @@
-import React from 'react';
-import { useEffect, useState } from 'react';
-import { useNavigate, Link } from 'react-router-dom';
+import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
-import '../../styles/MetallicChic.css';
+import {
+    Box,
+    Card,
+    CardContent,
+    Typography,
+    Button,
+    Stack,
+    Divider,
+    List,
+    ListItem,
+    ListItemText,
+    CircularProgress,
+} from '@mui/material';
+import {
+    IconArticle,
+    IconPhoto,
+    IconVideo,
+    IconUsers,
+    IconBriefcase,
+    IconChartBar,
+    IconRocket,
+    IconFolder,
+    IconRefresh,
+} from '@tabler/icons-react';
+
 export default function Dashboard() {
     const [stats, setStats] = useState({
         posts: { total: 0, galleries: 0, videos: 0 },
@@ -34,111 +57,118 @@ export default function Dashboard() {
         }
     };
 
-    if (loading) return <p style={{ textAlign: 'center', marginTop: '40px' }}>Loading dashboard...</p>;
+    if (loading) {
+        return (
+            <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', minHeight: 300, gap: 2 }}>
+                <CircularProgress size={32} />
+                <Typography variant="body2" color="text.secondary">Loading dashboard...</Typography>
+            </Box>
+        );
+    }
+
+    const statCards = [
+        { label: 'Total Articles', value: stats.posts.total, caption: 'Published items', icon: IconArticle },
+        { label: 'Media Assets', value: stats.posts.galleries, caption: 'Images in galleries', icon: IconPhoto },
+        { label: 'Video Streams', value: stats.posts.videos, caption: 'Embedded links & files', icon: IconVideo },
+        { label: 'System Users', value: stats.users.total, caption: 'Admin accounts', icon: IconUsers },
+        { label: 'Meroshare Clients', value: stats.clients.total, caption: 'Active accounts', icon: IconBriefcase },
+        { label: 'Total Shares', value: stats.clients.totalShares.toLocaleString(), caption: 'Client portfolio', icon: IconChartBar },
+    ];
 
     return (
-        <div>
-            <h2 className="mc-title" style={{ fontSize: '28px', marginBottom: '4px' }}>System Overview</h2>
-            <p className="mc-meta" style={{ marginBottom: '24px' }}>Brushed Metal Control Center Platform</p>
+        <Box>
+            <Typography variant="h4" sx={{ fontWeight: 700, mb: 0.5 }}>System Overview</Typography>
+            <Typography variant="body2" color="text.secondary" sx={{ mb: 3 }}>
+                Brushed Metal Control Center Platform
+            </Typography>
 
             {/* Dashboard Statistics Grid */}
-            <div className="mc-dash-grid">
-                <div className="mc-dash-stat-card">
-                    <span className="mc-sub-label" style={{ margin: 0 }}>Total Articles</span>
-                    <div className="mc-dash-stat-val">{stats.posts.total}</div>
-                    <span className="mc-meta" style={{ margin: 0 }}>Published items</span>
-                </div>
-                <div className="mc-dash-stat-card">
-                    <span className="mc-sub-label" style={{ margin: 0 }}>Media Assets</span>
-                    <div className="mc-dash-stat-val">{stats.posts.galleries}</div>
-                    <span className="mc-meta" style={{ margin: 0 }}>Images in galleries</span>
-                </div>
-                <div className="mc-dash-stat-card">
-                    <span className="mc-sub-label" style={{ margin: 0 }}>Video Streams</span>
-                    <div className="mc-dash-stat-val">{stats.posts.videos}</div>
-                    <span className="mc-meta" style={{ margin: 0 }}>Embedded links & files</span>
-                </div>
-                <div className="mc-dash-stat-card">
-                    <span className="mc-sub-label" style={{ margin: 0 }}>System Users</span>
-                    <div className="mc-dash-stat-val">{stats.users.total}</div>
-                    <span className="mc-meta" style={{ margin: 0 }}>Admin accounts</span>
-                </div>
-                <div className="mc-dash-stat-card">
-                    <span className="mc-sub-label" style={{ margin: 0 }}>Meroshare Clients</span>
-                    <div className="mc-dash-stat-val">{stats.clients.total}</div>
-                    <span className="mc-meta" style={{ margin: 0 }}>Active accounts</span>
-                </div>
-                <div className="mc-dash-stat-card">
-                    <span className="mc-sub-label" style={{ margin: 0 }}>Total Shares</span>
-                    <div className="mc-dash-stat-val">{stats.clients.totalShares.toLocaleString()}</div>
-                    <span className="mc-meta" style={{ margin: 0 }}>Client portfolio</span>
-                </div>
-            </div>
+            <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', sm: '1fr 1fr', md: 'repeat(3, 1fr)' }, gap: 2 }}>
+                {statCards.map(({ label, value, caption, icon: Icon }) => (
+                    <Card key={label} variant="outlined">
+                        <CardContent>
+                            <Stack direction="row" alignItems="flex-start" justifyContent="space-between">
+                                <Box>
+                                    <Typography variant="caption" color="text.secondary">{label}</Typography>
+                                    <Typography variant="h4" sx={{ fontWeight: 700, lineHeight: 1.2, mt: 0.5 }}>{value}</Typography>
+                                    <Typography variant="caption" color="text.disabled">{caption}</Typography>
+                                </Box>
+                                <Icon size={22} stroke={1.5} style={{ opacity: 0.55, flexShrink: 0 }} />
+                            </Stack>
+                        </CardContent>
+                    </Card>
+                ))}
+            </Box>
+
             {/* Recent Activity Section */}
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '24px', marginTop: '32px' }}>
-                {/* Recent Posts */}
-                <div className="mc-card">
-                    <h3 className="mc-title" style={{ fontSize: '16px', marginBottom: '16px' }}>Recent Posts</h3>
-                    {stats.recent.posts.length === 0 ? (
-                        <p style={{ color: '#999' }}>No posts yet</p>
-                    ) : (
-                        <ul style={{ listStyle: 'none', padding: 0, margin: 0 }}>
-                            {stats.recent.posts.map((post, idx) => (
-                                <li key={idx} style={{
-                                    padding: '10px 0',
-                                    borderBottom: idx < stats.recent.posts.length - 1 ? '1px solid #e5e7eb' : 'none',
-                                    fontSize: '13px'
-                                }}>
-                                    <div style={{ fontWeight: '600', color: '#1f2937' }}>{post.title}</div>
-                                    <div style={{ color: '#9ca3af', marginTop: '4px' }}>
-                                        {new Date(post.createdAt).toLocaleDateString()}
-                                    </div>
-                                </li>
-                            ))}
-                        </ul>
-                    )}
-                </div>
+            <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', md: '1fr 1fr' }, gap: 3, mt: 4 }}>
+                <Card variant="outlined">
+                    <CardContent>
+                        <Typography variant="subtitle1" sx={{ fontWeight: 600, mb: 1 }}>Recent Posts</Typography>
+                        {stats.recent.posts.length === 0 ? (
+                            <Typography variant="body2" color="text.secondary">No posts yet</Typography>
+                        ) : (
+                            <List disablePadding>
+                                {stats.recent.posts.map((post, idx) => (
+                                    <Box key={idx}>
+                                        <ListItem disableGutters sx={{ py: 1.25 }}>
+                                            <ListItemText
+                                                primary={post.title}
+                                                secondary={new Date(post.createdAt).toLocaleDateString()}
+                                                primaryTypographyProps={{ fontWeight: 600, fontSize: 13 }}
+                                                secondaryTypographyProps={{ fontSize: 12 }}
+                                            />
+                                        </ListItem>
+                                        {idx < stats.recent.posts.length - 1 && <Divider />}
+                                    </Box>
+                                ))}
+                            </List>
+                        )}
+                    </CardContent>
+                </Card>
 
-                {/* Recent Clients */}
-                <div className="mc-card">
-                    <h3 className="mc-title" style={{ fontSize: '16px', marginBottom: '16px' }}>Recent Clients</h3>
-                    {stats.recent.clients.length === 0 ? (
-                        <p style={{ color: '#999' }}>No clients yet</p>
-                    ) : (
-                        <ul style={{ listStyle: 'none', padding: 0, margin: 0 }}>
-                            {stats.recent.clients.map((client, idx) => (
-                                <li key={idx} style={{
-                                    padding: '10px 0',
-                                    borderBottom: idx < stats.recent.clients.length - 1 ? '1px solid #e5e7eb' : 'none',
-                                    fontSize: '13px'
-                                }}>
-                                    <div style={{ fontWeight: '600', color: '#1f2937' }}>{client.name}</div>
-                                    <div style={{ color: '#9ca3af', marginTop: '4px' }}>
-                                        @{client.username} • {new Date(client.createdAt).toLocaleDateString()}
-                                    </div>
-                                </li>
-                            ))}
-                        </ul>
-                    )}
-                </div>
-            </div>
+                <Card variant="outlined">
+                    <CardContent>
+                        <Typography variant="subtitle1" sx={{ fontWeight: 600, mb: 1 }}>Recent Clients</Typography>
+                        {stats.recent.clients.length === 0 ? (
+                            <Typography variant="body2" color="text.secondary">No clients yet</Typography>
+                        ) : (
+                            <List disablePadding>
+                                {stats.recent.clients.map((client, idx) => (
+                                    <Box key={idx}>
+                                        <ListItem disableGutters sx={{ py: 1.25 }}>
+                                            <ListItemText
+                                                primary={client.name}
+                                                secondary={`@${client.username} • ${new Date(client.createdAt).toLocaleDateString()}`}
+                                                primaryTypographyProps={{ fontWeight: 600, fontSize: 13 }}
+                                                secondaryTypographyProps={{ fontSize: 12 }}
+                                            />
+                                        </ListItem>
+                                        {idx < stats.recent.clients.length - 1 && <Divider />}
+                                    </Box>
+                                ))}
+                            </List>
+                        )}
+                    </CardContent>
+                </Card>
+            </Box>
 
-            {/* Quick Actions Engine */}
-            <h3 className="mc-title" style={{ fontSize: '18px', marginTop: '40px' }}>Quick Actions</h3>
-            <div className="mc-grid" style={{ marginTop: '12px' }}>
-                <button onClick={() => navigate('/create')} className="mc-btn" style={{ padding: '16px 24px' }}>
-                    🚀 Draft New Post
-                </button>
-                <button onClick={() => navigate('/posts')} className="mc-btn" style={{ padding: '16px 24px' }}>
-                    📁 Manage Posts
-                </button>
-                <button onClick={() => navigate('/clients')} className="mc-btn" style={{ padding: '16px 24px' }}>
-                    👥 Manage Clients
-                </button>
-                <button onClick={fetchStats} className="mc-btn" style={{ padding: '16px 24px' }}>
-                    🔄 Refresh Stats
-                </button>
-            </div>
-        </div>
+            {/* Quick Actions */}
+            <Typography variant="h6" sx={{ fontWeight: 600, mt: 5, mb: 1.5 }}>Quick Actions</Typography>
+            <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', sm: '1fr 1fr', md: 'repeat(4, 1fr)' }, gap: 1.5 }}>
+                <Button variant="outlined" size="large" startIcon={<IconRocket size={18} />} onClick={() => navigate('/create')}>
+                    Draft New Post
+                </Button>
+                <Button variant="outlined" size="large" startIcon={<IconFolder size={18} />} onClick={() => navigate('/posts')}>
+                    Manage Posts
+                </Button>
+                <Button variant="outlined" size="large" startIcon={<IconUsers size={18} />} onClick={() => navigate('/clients')}>
+                    Manage Clients
+                </Button>
+                <Button variant="outlined" size="large" startIcon={<IconRefresh size={18} />} onClick={fetchStats}>
+                    Refresh Stats
+                </Button>
+            </Box>
+        </Box>
     );
 }

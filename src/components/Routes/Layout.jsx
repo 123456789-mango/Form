@@ -27,10 +27,9 @@ export default function Layout() {
         }
     }, []);
 
-    useSessionManagement(() => {
+    const { stopSession } = useSessionManagement(() => {
         navigate('/login?reason=sessionExpired');
     });
-
     useEffect(() => {
         setProfileDropdownOpen(false);
     }, [location.pathname]);
@@ -38,6 +37,7 @@ export default function Layout() {
     const isAdmin = userRole === 'admin';
 
     const handleLogout = () => {
+        stopSession();
         localStorage.removeItem('token');
         localStorage.removeItem('refreshToken');
         localStorage.removeItem('user');
