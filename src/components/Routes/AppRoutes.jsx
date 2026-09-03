@@ -17,10 +17,8 @@ export default function AppRoutes({ isAdmin }) {
     return (
         <Box sx={{ width: '100%', minHeight: '100%' }}>
             <Routes>
-                {/* Dynamic Landing Dashboard based on Privilege */}
                 <Route path="/" element={isAdmin ? <Dashboard /> : <UserDashboard />} />
 
-                {/* Secure Administrator Execution Paths */}
                 {isAdmin ? (
                     <>
                         <Route path="/posts" element={<PostList />} />
@@ -41,11 +39,9 @@ export default function AppRoutes({ isAdmin }) {
                     </>
                 )}
 
-                {/* Common Authenticated Views */}
                 <Route path="/clients" element={<ClientList />} />
                 <Route path="/profile" element={<UserProfile />} />
 
-                {/* Fallback Redirection */}
                 <Route path="*" element={<Navigate to="/" replace />} />
             </Routes>
         </Box>

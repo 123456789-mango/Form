@@ -61,7 +61,6 @@ export default function Layout() {
                 overflowX: 'hidden'
             }}
         >
-            {/* Header Layout Component */}
             <Header
                 sidebarExpanded={sidebarExpanded}
                 setSidebarExpanded={setSidebarExpanded}
@@ -73,7 +72,6 @@ export default function Layout() {
                 handleProfileClick={handleProfileClick}
             />
 
-            {/* Main Application Body Split Frame */}
             <Box sx={{ display: 'flex', flex: 1, position: 'relative' }}>
                 <Sidebar
                     sidebarExpanded={sidebarExpanded}
@@ -86,7 +84,7 @@ export default function Layout() {
                     sx={{
                         flexGrow: 1,
                         p: { xs: 2.5, sm: 4 },
-                        bgcolor: 'rgba(247, 248, 240, 0.4)', // Soft tint backdrop behind views
+                        bgcolor: 'rgba(247, 248, 240, 0.4)',
                         minHeight: 'calc(100vh - 64px)',
                         boxSizing: 'border-box',
                         overflowY: 'auto'
